@@ -1,0 +1,31 @@
+{
+  "name": "masterscan",
+  "description": "Tool to scan a BIP39/BIP32 HD bitcoin wallet and send all funds to a new address",
+  "author": "Daniel.Weigl@mycelium.com",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "scripts": {
+    "start": "brunch watch --server",
+    "build": "brunch build --production"
+  },
+  "dependencies": {
+    "babel": "^6.5.2",
+    "babel-brunch": "^6.0.5",
+    "bitcore-lib": "^0.13.18",
+    "bower": "^1.7.9",
+    "jquery": "^3.1.0",
+    "sass-brunch": "^2.6.3"
+  },
+  "devDependencies": {
+    "brunch": "^2.0.0",
+    "javascript-brunch": "^2.0.0",
+    "css-brunch": "^2.0.0",
+    "uglify-js-brunch": "^2.0.0",
+    "clean-css-brunch": "^2.0.0",
+    "auto-reload-brunch": "^2.0.0",
+    "browserify-brunch": "^1.7.3"
+  }
+}
