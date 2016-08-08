@@ -44,12 +44,15 @@ document.addEventListener('DOMContentLoaded', function() {
         ui.lblRootKeyInfo.text('');
 
         const masterseed = ui.txRootNode.val();
-
-        try {
-            const scanner = new Masterscan(masterseed, cfg.network);
-            ui.lblRootKeyInfo.text(scanner.rootnode);
-        } catch (e){
-            ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
+        if (_.isEmpty(masterseed)) {
+            ui.lblRootKeyInfoError.text('Error: Enter the masterseed or the xPriv/xPub of the root node').removeClass('hidden');
+        } else {
+            try {
+                const scanner = new Masterscan(masterseed, cfg.network);
+                ui.lblRootKeyInfo.text(scanner.rootnode);
+            } catch (e) {
+                ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
+            }
         }
 
 
