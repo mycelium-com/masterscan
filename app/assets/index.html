@@ -1,13 +1,307 @@
 <!DOCTYPE html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-  <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
-  <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
-  <title>Dead simple skeleton</title>
-  <script src="/javascripts/app.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+    <meta name="viewport"
+          content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi"/>
+    <title>Masterscan</title>
+    <script src="/javascripts/app.js"></script>
 
 </head>
 <body>
+
+
+<nav class="navbar navbar-default" role="navigation">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Masterscan (Alpha)</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+            <li class="active"><a href="#bip32" data-toggle="tab">Home</a></li>
+            <li><a href="#help" data-toggle="tab">Help</a></li>
+        </ul>
+    </div><!-- /.navbar-collapse -->
+</nav>
+
+<div class="container">
+    <h1>Web Hierarchical Deterministic (HD) Wallet</h1>
+    <p>Implementing the Hierarchical Deterministic Wallet proposal <a
+            href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">BIP32</a>, with the aim of creating
+        easy to use, secure, and powerful tools for managing HD wallets and the funds within.</p>
+
+    <div class="alert alert-warning">This software has just started development, please use with care, and at least take
+        a look at the <a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">original BIP32
+            description</a>.
+    </div>
+
+    <div class="tab-content">
+        <div class="tab-pane fade in active" id="bip32">
+            <form class="form-horizontal" method="get" onSubmit="return false;">
+                <fieldset>
+                    <legend>HD wallet manager</legend>
+                    <div class="form-group" title="">
+                        <label class="col-lg-2 control-label" for="txRootNode">HD Root node</label>
+                        <div class="col-lg-10">
+                            <div class="row">
+                                <div class="col-lg-10">
+                                    <input type="text" id="txRootNode" class="form-control"
+                                           placeholder="12 words or xpub... or xpriv...">
+                                </div>
+                                <div class="col-lg-2">
+                                    <input class="btn btn-primary btn-block" type="button" value="Scan..."
+                                           id="btnScan"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-2 control-label" for="lblRootKeyInfo">Root Key</label>
+                        <div class="col-lg-10">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <code><span id="lblRootKeyInfo" class=""></span></code>
+                                    <span id="lblRootKeyInfoError" class="alert alert-danger hidden"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Spendable balance found</h3>
+                </div>
+                <div class="panel-body">
+                    <span id="balance_display">?</span> BTC (pending, unspendable transactions don't show)
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Send payment</h3>
+                </div>
+                <div class="panel-body">
+
+                    <form class="form-horizontal" method="get" onSubmit="return false;">
+                        <fieldset>
+
+                            <div class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="receiver_address">Receiver's address</label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <input type="text" id="receiver_address" class="form-control"
+                                                   placeholder="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="receiver_monies">Amount</label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <input type="text" id="receiver_monies" class="form-control" placeholder="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="fee_monies">Transaction fee added</label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <input type="text" id="fee_monies" class="form-control" placeholder="">
+                                            Generally at least <span style="font-family:monospace">0.0001</span> BTC is
+                                            recommended for speedy processing.
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <input class="btn btn-default" type="button" value="Generate transaction"
+                                                   id="generate_transaction"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="receiver_monies">Raw transaction
+                                    <span class="label label-warning" style="display: none;" id="unsignedtxlabel">Unsigned transaction</span>
+                                    <span class="label label-danger" style="display: none;" id="signedtxlabel">Signed transaction</span>
+                                </label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <textarea type="text" id="output_transaction" class="form-control"
+                                                      disabled></textarea>
+                                            Can check this transaction with <span style="font-family:monospace">bitcoind decoderawtransaction</span>
+                                            or <a href="https://blockchain.info/decode-tx" target="_blank">Blockchain.info's
+                                            Decode Transaction</a>.
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <!-- <input class="btn btn-default" type="button" value="Submit transaction" id="submit_signed_transaction" disabled/><br/> -->
+                                            Submit your signed transaction via <span style="font-family:monospace">bitcoind sendrawtransaction</span>
+                                            or <a href="https://blockchain.info/pushtx" target="_blank">Blockchain.info's
+                                            Broadcast Transaction</a>.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </fieldset>
+                    </form>
+
+                </div>
+            </div>
+
+
+            <div class="panel panel-default">
+                <!-- Default panel contents -->
+                <div class="panel-heading">Receiving Addresses</div>
+                <div class="panel-body">
+                    <p>Receiving addresses are the addresses found on the external address chain (i.e. <span
+                            style="font-family:monospace">m/i'/0/k</span> in BIP32 terminology).
+                        These should be used to to give to other people, where they can send payments.</p>
+                </div>
+
+                <table class="table">
+                    <thead>
+                    <th>#</th>
+                    <th>Address</th>
+                    <th>Balance (BTC)</th>
+                    </thead>
+                    <tbody id="receive_table">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel panel-default">
+                <!-- Default panel contents -->
+                <div class="panel-heading">Change Addresses</div>
+                <div class="panel-body">
+                    <p>Change addresses are the addresses found on the internal address chain (i.e. <span
+                            style="font-family:monospace">m/i'/1/k</span> in BIP32 terminology).
+                        These should be used just by the wallet software (e.g. this page) to generate new address every
+                        time you have change from
+                        an outgoing transaction. Should not use them directly.</p>
+                </div>
+
+                <table class="table">
+                    <thead>
+                    <th>#</th>
+                    <th>Address</th>
+                    <th>Balance (BTC)</th>
+                    </thead>
+                    <tbody id="change_table">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="help">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <h3>The hierarchy</h3>
+                    <p>
+                        This web wallet implements the recommended hierarchy from the original BIP32 proposal. As shown
+                        on the diagram below, a master extended key is used to create a number of child nodes which will
+                        be "Accounts". Each of the accounts have their own extended private and public key. The web
+                        wallet uses those extended keys from this frist derivation. Wallet chains and addresses follow
+                        as in the diagram.
+                        <img src="img/derivation.png">
+                    </p>
+                    <h3>How to generate suitable BIP32 keys</h3>
+
+                    <p>You can use <a href="http://bip32.org">BIP32.org</a> (either online of offline), or other Bitcoin
+                        utilities that implement BIP32, such as the <a href="https://github.com/richardkiss/pycoin">pycoin</a>
+                        library. For simplicity, the BIP32.org way is shown here.</p>
+                    <p>
+                        On BIP32.org, can use a strong passphrase, or a random string from a trusted source of
+                        randomness to generate the "BIP32 Extended Key". Save this key, and protect it well, as it is
+                        used to generate all the possible addresses belonging to this account.
+                        <img src="img/generate_key1.jpg">
+                    </p>
+
+                    <p>Further down the page, find the "Derivation Path" dropdown. Choose "Custom", and type in "<span
+                            style="font-style:monospace">m/i'</span>". The prime means "private derivation", which is
+                        recommended for these top level accounts as mentioned in the original document. Choose a number
+                        for "Keypair Index (i)". It can simply be 0 for the first wallet (and all related addresses)
+                        that you want to use, e.g. one of your projects, or one branch of a chainstore, then 1 for the
+                        second, and so on. As long as you remember the number, it doesn't matter what do you choose.</p>
+                    <p><img src="img/generate_key2.jpg"></p>
+                    <p>From here, <strong>save the extended private key, and extended public key</strong>. You will have
+                        to enter one of these into the web wallet. You can use the extended public key to query the
+                        funds in your wallet, without being able to spend it. <strong>Keep the extended private key
+                            secure</strong>, as that gives total access to your wallet and lets on spend the funds
+                        within.
+                    </p>
+
+                    <h3>Example</h3>
+                    <p>The one that should go in is the "wallet/account" level, which is "depth=1" keys (or m/i)
+                        accounts. After that the generated addresses are external and internal wallet chains (m/i/0/j
+                        and m/i/1/k) respectively.</p>
+
+                    <p>My testing extended public key is for example:
+                    <pre>xpub69i6TTB6JU2mwcQ7pKeDG8aAMnc2AZ2UdpuphoNak4nT4UTWYhkSGqpDgbGjHGbxYVK8jNF4eXMRk1aeGweLxiCWWB5EjKm3k6YMKoWN5VT</pre>
+                    </p>
+
+                    <p>If you plug it into <a href="http://bip32.org">bip32.org</a>, it will show "depth=1" (meaning
+                        it's one of the m/i keys). Then go to the derivation path section, and choose "custom", because
+                        we are not working with the "master node", but one of the childs, so this m/i key will be the
+                        new m for the purpose of the derivation! So when trying to get the first external address
+                        m/i/0/0 becomes m/0/0 because of the change of base.</p>
+
+                    <p>Then for first receiving address for this public key, m/0/0, can compare both the bip32.org and
+                        the webhdwallet to correctly give <span
+                                class="address-field">16p6ojeBcaELVJrXNmstA2Sv2Koi8zXfds</span>, and for the first
+                        change m/1/0 they both give <span
+                                class="address-field">1D5CKrqtbnsTdSTggr6um5eM17LoMyKdAC</span>.</p>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>
+            The contents of this page are released under the <a href="http://opensource.org/licenses/mit-license.php">MIT
+            License</a><br>
+            Donations are gratefully accepted at <a href="bitcoin:17NWCFWo8EvFp7vtkbRH6ec3DEdxZhrhrd">17NWCFWo8EvFp7vtkbRH6ec3DEdxZhrhrd</a><br>
+            <a href="https://keybase.io/imrehg">Contact me securely</a>.
+            <span class="pull-right">Powered by <a href="http://pages.github.com">GitHub Pages</a> &nbsp;
+          <a href="https://github.com/webhdwallet/webhdwallet.github.io">GitHub Repository</a> &nbsp;
+                <!-- <a href="https://github.com/bip32/bip32.github.io/archive/master.zip">Download ZIP</a> -->
+        </span>
+        </p>
+    </footer>
+</div>
+
+<div class="modal fade" id="qroverlay" tabindex="-1" role="dialog" aria-labelledby="QR Code" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body" style="text-align:center">
+                <span id="genAddrQR"></span><br><span id="qraddr" style="font-family:monospace"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 </body>
 </html>

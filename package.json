@@ -15,7 +15,10 @@
     "babel": "^6.5.2",
     "babel-brunch": "^6.0.5",
     "bitcore-lib": "^0.13.18",
+    "bitcore-mnemonic": "^1.1.1",
+    "bootstrap": "^3.3.7",
     "bower": "^1.7.9",
+    "cssify": "^0.6.0",
     "jquery": "^3.1.0",
     "sass-brunch": "^2.6.3"
   },
@@ -26,6 +29,13 @@
     "uglify-js-brunch": "^2.0.0",
     "clean-css-brunch": "^2.0.0",
     "auto-reload-brunch": "^2.0.0",
+    "browserify": "^5.0.0",
+    "cssify": "^0.6.0",
     "browserify-brunch": "^1.7.3"
+  },
+  "browserify": {
+    "transform": [
+      "cssify"
+    ]
   }
 }
