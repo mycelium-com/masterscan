@@ -28,6 +28,7 @@ const Masterscan = require('./masterscan');
 
 const cfg = {
     network : bitcore.Networks.testnet
+    //network : bitcore.Networks.livenet
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const scanner = new Masterscan(masterseed, cfg.network);
                 ui.lblRootKeyInfo.text(scanner.rootnode);
+                scanner.scan();
             } catch (e) {
                 ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
             }
