@@ -3,6 +3,7 @@ image: node
 pages:
   script:
   - npm install -g bower brunch
+  - npm install
   - brunch build
 
   artifacts:
