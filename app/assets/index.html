@@ -85,7 +85,8 @@
                     <h3 class="panel-title">Spendable balance found</h3>
                 </div>
                 <div class="panel-body">
-                    <span id="balance_display">?</span> BTC (pending, unspendable transactions don't show)
+                    <div id="accounts"></div>
+                    <div id="utxos"></div>
                 </div>
             </div>
 
@@ -99,12 +100,13 @@
                         <fieldset>
 
                             <div class="form-group" title="">
-                                <label class="col-lg-2 control-label" for="receiver_address">Receiver's address</label>
+                                <label class="col-lg-2 control-label" for="txReceiverAddress">Receiver's address</label>
                                 <div class="col-lg-10">
                                     <div class="row">
                                         <div class="col-lg-12">
-                                            <input type="text" id="receiver_address" class="form-control"
-                                                   placeholder="">
+                                            <input type="text" id="txReceiverAddress" class="form-control" placeholder=""
+                                                   value="2Mtrbtz9pMNGuv2MgrzeetHxee4G1ZaMGhZ"
+                                            >
                                         </div>
                                     </div>
                                 </div>
@@ -140,14 +142,14 @@
                             </div>
 
                             <div class="form-group" title="">
-                                <label class="col-lg-2 control-label" for="receiver_monies">Raw transaction
+                                <label class="col-lg-2 control-label" for="txTransaction">Raw transaction
                                     <span class="label label-warning" style="display: none;" id="unsignedtxlabel">Unsigned transaction</span>
                                     <span class="label label-danger" style="display: none;" id="signedtxlabel">Signed transaction</span>
                                 </label>
                                 <div class="col-lg-10">
                                     <div class="row">
                                         <div class="col-lg-12">
-                                            <textarea type="text" id="output_transaction" class="form-control"
+                                            <textarea type="text" id="txTransaction" class="form-control"
                                                       disabled></textarea>
                                             Can check this transaction with <span style="font-family:monospace">bitcoind decoderawtransaction</span>
                                             or <a href="https://blockchain.info/decode-tx" target="_blank">Blockchain.info's
@@ -305,6 +307,40 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+
+<!-- Templates -->
+
+<script id="accounts-template" type="text/x-handlebars-template">
+    <h2>Accounts</h2>
+    {{#each this}}
+    <div class="account">
+        <h3>{{name}} - {{path}}</h3>
+        <h4>Receiving addresses</h4>
+        {{> addresses external.addresses}}
+        <h4>Change addresses</h4>
+        {{> addresses change.addresses}}
+    </div>
+    {{/each}}
+</script>
+
+<script id="addresslist-template" type="text/x-handlebars-template">
+    {{#each this}}
+    <div class="address">
+        {{path}} - {{addr}}: {{balance}}
+    </div>
+    {{/each}}
+</script>
+
+<script id="utxos-template" type="text/x-handlebars-template">
+    <h2>UTXOs</h2>
+    total: {{formatSatoshi totalAmount}}
+    {{#each utxoArray}}
+    <div class="utxo">
+        {{addrPath}} - {{address}}: {{amount}} ({{confirmations}}) <a href="{{txLink txid}}" target="_blank">tx</a>
+    </div>
+    {{/each}}
+</script>
 
 </body>
 </html>

@@ -11,6 +11,8 @@ const {
     Block,
 } = bitcore;
 
+const UnspentOutput = Transaction.UnspentOutput;
+
 const Rx = require('rxjs/Rx');
 
 const Mnemonic = require('bitcore-mnemonic');
@@ -24,34 +26,38 @@ class Masterscan {
         this.masterseed = new Mnemonic(masterSeed);  // throws bitcore.ErrorMnemonicUnknownWordlist or bitcore.ErrorMnemonicInvalidMnemonic if not valid
         this.rootnode =  this.masterseed.toHDPrivateKey("", network)
         this.maxAccountGap = 5;
-        this.maxChainGap = {external: 20, change: 20};
+        this.maxChainGap = {external: 5, change: 5};
     }
 
-    scan(resultCallback, statusCallback){
-        var accountGap = 0;
-        var idx = 0;
-        var accounts = [];
+    scan(statusCallback){
+        return new Promise((resolve, reject) => {
+            var accountGap = 0;
+            var idx = 0;
+            var accounts = [];
 
-        //accounts.push(this.initRootAccount());
+            //accounts.push(this.initRootAccount());
 
-        while(accountGap < this.maxAccountGap){
-            var account = this.initBip44Account(idx);
-            if (!account.wasUsed) {
-                accountGap ++;
-            } else {
-                accountGap = 0;
+            while (accountGap < this.maxAccountGap) {
+                var account = this.initBip44Account(idx);
+                if (!account.wasUsed) {
+                    accountGap++;
+                } else {
+                    accountGap = 0;
+                }
+                accounts.push(account)
+                idx++;
             }
-            accounts.push(account)
-            idx++;
-        }
-        this.scanAccount(accounts[0]).then(d => {
-            console.log(d);
-            console.log(accounts);
-            console.log(this.getAccountUtxo(accounts[0]));
+
+            //test
+            accounts[0].scanAccount().then(d => {
+                console.log(d);
+                console.log(accounts);
+                console.log(accounts[0].getUtxo());
+                resolve(accounts);
+            });
+
+
         });
-
-
-
         /*
         Insight.getUTXOs(['mjbw5R3Jmj3NwnwN1Ux4gMv4fptyMgQiwf']).then(function(d){
             console.log(d);
@@ -63,40 +69,110 @@ class Masterscan {
     }
 
     initRootAccount(){
-        return this.initAccount(this.rootnode, 'm');
+        return new Account(this.rootnode, this.maxChainGap, 'm', "Root account", this.network);
     }
 
     initBip44Account(idx){
         var path = `m/44'/${this.coinid}'/${idx}'`
         var accountRoot = this.rootnode.derive(path);
-        return this.initAccount(accountRoot, path);
+        return new Account(accountRoot, this.maxChainGap, path, "Account " + idx, this.network);
     }
 
-    initAccount(accountRoot, path) {
-        var external = new Chain(accountRoot.derive('m/0'), this.maxChainGap.external, path + '/0', this.network);
-        var change = new Chain(accountRoot.derive('m/1'), this.maxChainGap.change, path + '/1', this.network);
-        return {wasUsed: external.wasUsed || change.wasUsed, root:accountRoot, external:external, change:change};
+
+
+    prepareTx(utxoSet, keyBag, dest, feePerByte){
+
+        function mapUtxo(utxo){
+            return new UnspentOutput({
+                txid:utxo.txid,
+                address:utxo.address,
+                outputIndex:utxo.vout,
+                satoshis:utxo.satoshis,
+                sequenceNumber:0xffff,
+                script:utxo.scriptPubKey,
+            })
+        }
+
+        return new Promise((okay, fail) => {
+            var transaction = new bitcore.Transaction();
+            for (var i in utxoSet.utxoArray) {
+                transaction.from(mapUtxo(utxoSet.utxoArray[i]));
+            }
+            transaction.to(dest, utxoSet.totalAmount);
+            transaction.sign(keyBag);
+
+            // fee calculation
+            const txSize = transaction.toBuffer().length;
+            const feeSat = feePerByte * txSize;
+            // remove the previous output and add it again, but with totalAmount reduced by calculated fee
+            transaction.clearOutputs();
+            transaction.to(dest, utxoSet.totalAmount - feeSat);
+            // Sign again
+            transaction.sign(keyBag);
+
+            okay(transaction);
+        });
+
     }
 
-    getAccountUtxo(account){
-        return account.external.getAllUtxo()
-            .concat(account.change.getAllUtxo());
+
+}
+
+class UtxoSet{
+    constructor(utxos){
+        this.utxoArray = utxos;
+    }
+
+    get totalAmount(){
+        var total=0;
+        for (var i in this.utxoArray){
+            total += this.utxoArray[i].satoshis;
+        }
+        return total;
+    }
+}
+
+class Account{
+    constructor(root, gaps, path, name, network){
+        this.root = root;
+        this.gaps = gaps;
+        this.path = path;
+        this.network = network;
+        this.name = name;
+
+        this.external = new Chain(root.derive('m/0'), gaps.external, path + '/0', this.network);
+        this.change = new Chain(root.derive('m/1'), gaps.change, path + '/1', this.network);
+    }
+
+    get wasUsed() {
+        return this.external.wasUsed || this.change.wasUsed;
+    }
+
+    get keyBag() {
+        return this.external.keyBag.concat(this.change.keyBag);
+    }
+
+    getUtxo(){
+        return new UtxoSet(
+            this.external.getAllUtxo()
+                .concat(this.change.getAllUtxo())
+        )
     }
 
     scanAccount(account){
-        if (account.external.isFullySynced && account.internal.isFullySynced){
+        if (this.external.isFullySynced && this.internal.isFullySynced){
             return Promise.resolve(true);
         }
 
-        var ext = this.scanChain(account.external);
-        var change = this.scanChain(account.change);
+        var ext = this.scanChain(this.external);
+        var change = this.scanChain(this.change);
         return Promise.all([ext, change])
             .then(d => {
-                if (account.external.isFullySynced && account.change.isFullySynced){
+                if (this.external.isFullySynced && this.change.isFullySynced){
                     return true;
                 } else {
                     // scan until everything is fully synced
-                    return this.scanAccount(account);
+                    return this.scanAccount(this);
                 }
             });
 
@@ -122,8 +198,8 @@ class Masterscan {
                 Insight.isAddressUsed(ak.addr)
                     .then(d => {
                         ak.balance = d.balanceSat;
-                        ak.totalRecv = d.totalReceivedSat;
-                        if (ak.totalRecv > 0 || d.unconfirmedBalanceSat > 0) {
+                        ak.totalRecv = d.totalReceivedSat + d.unconfirmedBalanceSat;
+                        if (ak.totalRecv > 0) {
                             ak.state = 'getutxo';
                             return Insight.getUTXOs([ak.addr])
                                 .then(u => {
@@ -143,16 +219,17 @@ class Masterscan {
 
         return Promise.all(req);
     }
+
 }
 
 class Chain{
-
     constructor(root, gap, path, network){
         this.root = root;
         this.gap = gap;
         this.path = path;
         this.network = network;
         this.addresses = [];
+        this.keyBag = [];
         this.extend();
     }
 
@@ -172,8 +249,10 @@ class Chain{
         var idx = this.length;
         var reqs = [];
         while(addressCnt < this.gap){
-            var addr = this.root.derive(`m/${idx}`).hdPublicKey.publicKey.toAddress(this.network).toString();
+            var node = this.root.derive(`m/${idx}`);
+            var addr = node.hdPublicKey.publicKey.toAddress(this.network).toString();
             this.addresses.push({addr: addr, path: this.path + '/' + idx, idx:idx, utxo:null, balance:null, totalRecv:null, state: null});
+            this.keyBag.push(node.privateKey);
             addressCnt++;
             idx++;
         }
@@ -203,15 +282,15 @@ class Chain{
 
     // checks if there are at least $gap addresses synced but with out balance after the last address with balance
     get isFullySynced(){
-        var lastWithBalance = 0;
+        var lastWithActivity = 0;
         var finalGap = -1;
         for (var a in this.addresses){
             var ak = this.addresses[a];
-            if (ak.balance > 0){
-                lastWithBalance = ak;
+            if (ak.totalRecv > 0){
+                lastWithActivity = a;
             }
-            if (ak.balance == 0 && ak.state=='sync'){
-                finalGap = a - lastWithBalance;
+            if (ak.totalRecv == 0 && ak.state=='sync'){
+                finalGap = a - lastWithActivity;
             }
         }
         return finalGap >= this.gap;
