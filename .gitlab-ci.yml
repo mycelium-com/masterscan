@@ -1,0 +1,13 @@
+image: node
+
+pages:
+  script:
+  - npm install -g bower brunch
+  - brunch build
+
+  artifacts:
+    paths:
+    - public
+
+  only:
+    - master
