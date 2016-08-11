@@ -2,9 +2,12 @@ image: node
 
 pages:
   script:
-  - npm install -g bower brunch
+  - npm install -g bower brunch browserify
   - npm install
-  - brunch build
+  - brunch build --production
+  - mkdir public/javascripts/
+  - browserify app/initialize.js > public/javascripts/app.js
+
 
   artifacts:
     paths:

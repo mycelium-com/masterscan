@@ -13,8 +13,6 @@ const {
 
 const UnspentOutput = Transaction.UnspentOutput;
 
-const Rx = require('rxjs/Rx');
-
 const Mnemonic = require('bitcore-mnemonic');
 const Insight = require('./insightApi.js');
 
