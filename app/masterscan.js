@@ -40,26 +40,24 @@ class Masterscan {
     }
 
     scanInt(progressCallBack){
-        return new Promise((resolve, reject) => {
-            //this.accounts.push(this.initRootAccount());
-            this.extendAccounts(this.maxAccountGap);
-            progressCallBack();
+        //this.accounts.push(this.initRootAccount());
+        this.extendAccounts(this.maxAccountGap);
+        progressCallBack();
 
-            var req = [];
-            for (var i in this.accounts){
-                req.push(this.accounts[i].scanAccount(progressCallBack));
+        var req = [];
+        for (var i in this.accounts){
+            req.push(this.accounts[i].scanAccount(progressCallBack));
+        }
+
+        return Promise.all(req).then(() => {
+            if (this.isFullySynced) {
+                console.log(this.accounts);
+                console.log(this.accounts[0].getUtxo());
+                return this.accounts;
+            } else {
+                // scan until there is a big enough account gap
+                return this.scanInt(progressCallBack);
             }
-
-            Promise.all(req).then(d => {
-                if (this.isFullySynced) {
-                    console.log(this.accounts);
-                    console.log(this.accounts[0].getUtxo());
-                    resolve(this.accounts);
-                } else {
-                    // scan until there is a big enough account gap
-                    this.scanInt(progressCallBack);
-                }
-            });
         });
     }
 
@@ -228,7 +226,7 @@ class Account{
         }
 
         var toScan = chain.getAddressesToScan();
-        if (toScan.length < 10){
+        if (toScan.length == 0){
             chain.extend();
             toScan = chain.getAddressesToScan();
         }
