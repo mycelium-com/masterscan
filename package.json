@@ -20,7 +20,8 @@
     "bower": "^1.7.9",
     "handlebars": "^4.0.5",
     "jquery": "^3.1.0",
-    "sass-brunch": "^2.6.3"
+    "sass-brunch": "^2.6.3",
+    "toastr": "^2.1.2"
   },
   "devDependencies": {
     "brunch": "^2.0.0",

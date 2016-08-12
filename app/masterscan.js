@@ -48,13 +48,10 @@ class Masterscan {
 
             //test
             accounts[0].scanAccount().then(d => {
-                console.log(d);
                 console.log(accounts);
                 console.log(accounts[0].getUtxo());
                 resolve(accounts);
             });
-
-
         });
         /*
         Insight.getUTXOs(['mjbw5R3Jmj3NwnwN1Ux4gMv4fptyMgQiwf']).then(function(d){
@@ -75,8 +72,6 @@ class Masterscan {
         var accountRoot = this.rootnode.derive(path);
         return new Account(accountRoot, this.maxChainGap, path, "Account " + idx, this.network);
     }
-
-
 
     prepareTx(utxoSet, keyBag, dest, feePerByte){
 
@@ -110,9 +105,16 @@ class Masterscan {
 
             okay(transaction);
         });
-
     }
 
+    static fetchFee(blocks=2){
+        return Insight.getFeeEstimate(blocks)
+            .then(d => Math.ceil(d[blocks] * 100000000 / 1024));
+    }
+
+    static broadcastTx(tx){
+        return Insight.sendTransaction(tx);
+    }
 
 }
 

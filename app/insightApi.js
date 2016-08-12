@@ -38,7 +38,7 @@ function getTransactions(addresses, start, end, host = DEFAULT_HOST) {
     const endpoint = `${host}/
     ${INSIGHT_ENDPOINT}/
     addrs/txs?from=${start}&to=${end}`;
-    const response = fetch(sanitizeURL(endpoint), {
+    return fetch(sanitizeURL(endpoint), {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -49,8 +49,7 @@ function getTransactions(addresses, start, end, host = DEFAULT_HOST) {
             from: start,
             to: end,
         }),
-    });
-    return response.json();
+    }).then(d => d.json());
 }
 
 function getTransactionInfo(txId, host = DEFAULT_HOST){
@@ -66,7 +65,7 @@ function sendTransaction(tx, host = DEFAULT_HOST) {
     const endpoint = `${host}/
     ${INSIGHT_ENDPOINT}/
     tx/send`;
-    const response = fetch(sanitizeURL(endpoint), {
+    return fetch(sanitizeURL(endpoint), {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -75,8 +74,20 @@ function sendTransaction(tx, host = DEFAULT_HOST) {
         body: JSON.stringify({
             rawtx: tx.serialize(),
         }),
-    });
-    return response.json();
+    })
+        .then(d => {
+            if (d.ok){
+                return d.json();
+            } else {
+                // we got a non-json error response
+                return d.text().then(txt => {
+                    return {txid:null, err:txt};
+                });
+            }
+        })
+        .catch(err => {
+            return {txid:null, err:err};
+        });
 }
 
 function getBlockHeight(host = DEFAULT_HOST) {
@@ -92,9 +103,7 @@ function getFeeEstimate(nblocks, host = DEFAULT_HOST) {
     const endpoint = `${host}/
     ${INSIGHT_ENDPOINT}/
     utils/estimatefee?nbBlocks=${nblocks}`;
-    const response = fetch(sanitizeURL(endpoint));
-    const json = response.json();
-    return json[nblocks];
+    return fetch(sanitizeURL(endpoint)).then(d => d.json());
 }
 
 function sanitizeURL(url) {

@@ -90,7 +90,7 @@
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Send payment</h3>
+                    <h3 class="panel-title">Send all available funds</h3>
                 </div>
                 <div class="panel-body">
 
@@ -110,56 +110,62 @@
                                 </div>
                             </div>
                             <div class="form-group" title="">
-                                <label class="col-lg-2 control-label" for="receiver_monies">Amount</label>
+                                <label class="col-lg-2 control-label" for="txFeePerByte">Transaction fee <br>(satoshi/byte)</label>
                                 <div class="col-lg-10">
                                     <div class="row">
                                         <div class="col-lg-12">
-                                            <input type="text" id="receiver_monies" class="form-control" placeholder="">
+                                            <input type="text" id="txFeePerByte" class="form-control" placeholder="">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group" title="">
-                                <label class="col-lg-2 control-label" for="fee_monies">Transaction fee added</label>
+                                <div class="col-lg-2"></div>
                                 <div class="col-lg-10">
                                     <div class="row">
                                         <div class="col-lg-12">
-                                            <input type="text" id="fee_monies" class="form-control" placeholder="">
-                                            Generally at least <span style="font-family:monospace">0.0001</span> BTC is
-                                            recommended for speedy processing.
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-lg-12">
-                                            <input class="btn btn-default" type="button" value="Generate transaction"
-                                                   id="generate_transaction"/>
+                                            <input class="btn btn-default" type="button" value="Update transaction"
+                                                   id="btnUpdateTransaction"/>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
+                            <div class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="txTransaction">Resulting Transaction</label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <strong>Sending amount:</strong><span id="spSendingAmount">n/a</span>
+                                            <strong>Total fee:</strong><span id="spTotalFee">n/a</span>
+                                            <strong>Percentage:</strong><span id="spPercentageFee">n/a</span>
+                                            <strong>Size of transaction:</strong><span id="spTxSize">n/a</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="form-group" title="">
                                 <label class="col-lg-2 control-label" for="txTransaction">Raw transaction
                                     <span class="label label-warning" style="display: none;" id="unsignedtxlabel">Unsigned transaction</span>
-                                    <span class="label label-danger" style="display: none;" id="signedtxlabel">Signed transaction</span>
                                 </label>
                                 <div class="col-lg-10">
                                     <div class="row">
                                         <div class="col-lg-12">
-                                            <textarea type="text" id="txTransaction" class="form-control"
-                                                      disabled></textarea>
-                                            Can check this transaction with <span style="font-family:monospace">bitcoind decoderawtransaction</span>
-                                            or <a href="https://blockchain.info/decode-tx" target="_blank">Blockchain.info's
-                                            Decode Transaction</a>.
+                                            <textarea type="text" id="txTransaction" class="form-control" disabled></textarea>
+                                            You can check this transaction with <span style="font-family:monospace">bitcoind decoderawtransaction</span>
+                                            or via <a id="aCheckTx" href="https://coinb.in/#verify" target="_blank">Coinb.in</a>.
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" title="">
+                                <div class="col-lg-2"></div>
+                                <div class="col-lg-10">
                                     <div class="row">
                                         <div class="col-lg-12">
-                                            <!-- <input class="btn btn-default" type="button" value="Submit transaction" id="submit_signed_transaction" disabled/><br/> -->
-                                            Submit your signed transaction via <span style="font-family:monospace">bitcoind sendrawtransaction</span>
-                                            or <a href="https://blockchain.info/pushtx" target="_blank">Blockchain.info's
-                                            Broadcast Transaction</a>.
+                                            <input class="btn btn-default" type="button" value="Send transaction"
+                                                   id="btnSendTransaction"/>
                                         </div>
                                     </div>
                                 </div>
@@ -325,7 +331,7 @@
 <script id="addresslist-template" type="text/x-handlebars-template">
     {{#each this}}
     <div class="address">
-        {{path}} - {{addr}}: {{balance}}
+        {{path}} - {{addrHiddenLink addr 0}}: {{balance}}
     </div>
     {{/each}}
 </script>
@@ -335,7 +341,7 @@
     total: {{formatSatoshi totalAmount}}
     {{#each utxoArray}}
     <div class="utxo">
-        {{addrPath}} - {{address}}: {{amount}} ({{confirmations}}) <a href="{{txLink txid}}" target="_blank">tx</a>
+        {{addrPath}} - {{addrHiddenLink address 0}}: {{amount}} ({{confirmations}}) {{txLink txid "tx"}}
     </div>
     {{/each}}
 </script>

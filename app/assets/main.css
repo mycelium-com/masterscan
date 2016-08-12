@@ -1,3 +1,12 @@
 .text-monospace {
     font-family: monospace;
 }
+
+a.hiddenLink {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+a.hiddenLink:hover {
+    text-decoration: underline;
+}
