@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         updateAccountList(accounts);
                         updateTransaction(accounts);
                         const spendable = formatSatoshi(accounts.getUtxo().totalAmount);
-                        toastr.success("Found " + accounts.numUsedAccounts + " accounts with and total of " + spendable + " spendable", "Synchronization successfull")
+                        toastr.success("Found " + accounts.numUsedAccounts + " accounts with a total of " + spendable + " spendable", "Synchronization successfull")
                     });
             } catch (e) {
                 ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
