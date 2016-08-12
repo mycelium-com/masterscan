@@ -128,10 +128,10 @@ const InsightAPI = {
     INSIGHT_ENDPOINT,
     isAddressUsed,
     getUTXOs,
-    getTransactions,
-    getTransactionInfo,
+    //getBlockHeight,
+    //getTransactions,
+    //getTransactionInfo,
     sendTransaction,
-    getBlockHeight,
     getFeeEstimate,
 }
 
