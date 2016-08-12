@@ -167,6 +167,14 @@ class Accounts extends Array{
         }
         return new UtxoSet(all);
     }
+
+    get numUsedAccounts(){
+        var cnt=0;
+        for (const i in this){
+            if (this[i].wasUsed) cnt++;
+        }
+        return cnt;
+    }
 }
 
 class Account{

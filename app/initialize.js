@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
         addresslist: Handlebars.compile($("#addresslist-template").html()),
     };
 
-    toastr.options.timeOut = 30;
+    toastr.options.timeOut = 30 * 1000;
     toastr.options.extendedTimeOut = 0;
     toastr.options.closeButton = true;
 
@@ -114,9 +114,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 ui.lblRootKeyInfo.text(scanner.rootnode);
                 scanner.scan(updateAccountList)
                     .then(accounts => {
+                        const utxos = accounts.getUtxo();
                         lastResult = accounts;
                         updateAccountList(accounts);
                         updateTransaction(accounts);
+                        const spendable = formatSatoshi(accounts.getUtxo().totalAmount);
+                        toastr.success("Found " + accounts.numUsedAccounts + " accounts with and total of " + spendable + " spendable", "Synchronization successfull")
                     });
             } catch (e) {
                 ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
