@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 scanner = new Masterscan(masterseed, cfg.network);
                 ui.lblRootKeyInfo.text(scanner.rootnode);
-                scanner.scan()
+                scanner.scan(updateAccountList)
                     .then(accounts => {
                         lastResult = accounts;
                         updateAccountList(accounts);

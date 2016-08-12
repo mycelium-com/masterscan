@@ -330,8 +330,8 @@
 
 <script id="addresslist-template" type="text/x-handlebars-template">
     {{#each this}}
-    <div class="address">
-        {{path}} - {{addrHiddenLink addr 0}}: {{balance}}
+    <div class="address {{#if totalRecv}}withActivity{{/if}} {{state}}">
+        {{path}} - {{addrHiddenLink addr 0}}: {{balance}} ({{totalRecv}})
     </div>
     {{/each}}
 </script>

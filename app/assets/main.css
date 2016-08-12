@@ -10,3 +10,23 @@ a.hiddenLink {
 a.hiddenLink:hover {
     text-decoration: underline;
 }
+
+.address.withActivity{
+    font-weight: bold;
+}
+
+.address.err{
+    color: darkred;
+}
+
+.address.unk {
+    color: lightgray;
+}
+
+.address.scan {
+    color: gray;
+}
+
+.address.getutxo{
+    font-style: italic;
+}
