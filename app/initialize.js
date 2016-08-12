@@ -143,14 +143,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function updateAccountList(accounts) {
-        const utxos = accounts[0].getUtxo();
+        const utxos = accounts.getUtxo();
 
         ui.divAccounts.html(tmpl.accounts(accounts));
         ui.divUtxos.html(tmpl.utxos(utxos));
     }
 
     function updateTransaction(accounts) {
-        const utxos = accounts[0].getUtxo();
+        const utxos = accounts.getUtxo();
         const keyBag = accounts[0].keyBag;
         const addr = ui.txReceiverAddress.val();
         const fee = ui.txFeePerByte.val();

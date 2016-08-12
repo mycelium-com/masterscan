@@ -24,9 +24,9 @@ class Masterscan {
         this.masterseed = new Mnemonic(masterSeed);  // throws bitcore.ErrorMnemonicUnknownWordlist or bitcore.ErrorMnemonicInvalidMnemonic if not valid
         this.rootnode =  this.masterseed.toHDPrivateKey("", network);
         this.maxAccountGap = 2;
-        this.maxChainGap = {external: 5, change: 5};
-        this.bip44Accounts = [];
-        this.accounts = [];
+        this.maxChainGap = {external: 25, change: 5};
+        this.bip44Accounts = new Accounts();
+        this.accounts = new Accounts();
 
     }
 
@@ -154,6 +154,20 @@ class UtxoSet{
             total += this.utxoArray[i].satoshis;
         }
         return total;
+    }
+}
+
+class Accounts extends Array{
+    constructor(){
+        super();
+    }
+
+    getUtxo(){
+        var all = [];
+        for (const i in this){
+            all = all.concat(this[i].getUtxo().utxoArray);
+        }
+        return new UtxoSet(all);
     }
 }
 
