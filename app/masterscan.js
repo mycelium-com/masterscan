@@ -14,20 +14,18 @@ const {
 const UnspentOutput = Transaction.UnspentOutput;
 
 const Mnemonic = require('bitcore-mnemonic');
-const Insight = require('./insightApi.js');
 
 class Masterscan {
 
-    constructor(masterSeed, network = Networks.defaultNetwork) {
+    constructor(masterSeed, network = Networks.defaultNetwork, insight) {
         this.coinid = network === Networks.livenet ? 0 : 1;
-        this.network = network;
+        this.context = {network:network, insight: insight};
         this.masterseed = new Mnemonic(masterSeed);  // throws bitcore.ErrorMnemonicUnknownWordlist or bitcore.ErrorMnemonicInvalidMnemonic if not valid
         this.rootnode =  this.masterseed.toHDPrivateKey("", network);
-        this.maxAccountGap = 2;
+        this.maxAccountGap = 5;
         this.maxChainGap = {external: 25, change: 5};
         this.bip44Accounts = new Accounts();
         this.accounts = new Accounts();
-
     }
 
     scan(progressCallBack){
@@ -87,13 +85,13 @@ class Masterscan {
     }
 
     initRootAccount(){
-        return new Account(this.rootnode, this.maxChainGap, 'm', "Root account", this.network);
+        return new Account(this.rootnode, this.maxChainGap, 'm', "Root account", this.context);
     }
 
     initBip44Account(idx){
         var path = `m/44'/${this.coinid}'/${idx}'`
         var accountRoot = this.rootnode.derive(path);
-        return new Account(accountRoot, this.maxChainGap, path, "Account " + idx, this.network);
+        return new Account(accountRoot, this.maxChainGap, path, "Account " + idx, this.context);
     }
 
     prepareTx(utxoSet, keyBag, dest, feePerByte){
@@ -130,13 +128,13 @@ class Masterscan {
         });
     }
 
-    static fetchFee(blocks=2){
-        return Insight.getFeeEstimate(blocks)
+    static fetchFee(blocks=2, insight){
+        return insight.getFeeEstimate(blocks)
             .then(d => Math.ceil(d[blocks] * 100000000 / 1024));
     }
 
-    static broadcastTx(tx){
-        return Insight.sendTransaction(tx);
+    static broadcastTx(tx, insight){
+        return insight.sendTransaction(tx, this.context.url);
     }
 
 }
@@ -178,15 +176,15 @@ class Accounts extends Array{
 }
 
 class Account{
-    constructor(root, gaps, path, name, network){
+    constructor(root, gaps, path, name, context){
         this.root = root;
         this.gaps = gaps;
         this.path = path;
-        this.network = network;
+        this.context = context;
         this.name = name;
 
-        this.external = new Chain(root.derive('m/0'), gaps.external, path + '/0', this.network);
-        this.change = new Chain(root.derive('m/1'), gaps.change, path + '/1', this.network);
+        this.external = new Chain(root.derive('m/0'), gaps.external, path + '/0', this.context);
+        this.change = new Chain(root.derive('m/1'), gaps.change, path + '/1', this.context);
     }
 
     get wasUsed() {
@@ -245,13 +243,13 @@ class Account{
             const ak = toScan[i];
             ak.state = 'scan';
             req.push(
-                Insight.isAddressUsed(ak.addr)
+                this.context.insight.isAddressUsed(ak.addr)
                     .then(d => {
                         ak.balance = d.balanceSat;
                         ak.totalRecv = d.totalReceivedSat + d.unconfirmedBalanceSat;
                         if (ak.totalRecv > 0) {
                             ak.state = 'getutxo';
-                            return Insight.getUTXOs([ak.addr])
+                            return this.context.insight.getUTXOs([ak.addr])
                                 .then(u => {
                                     ak.utxo = u;
                                     ak.state = 'sync';
@@ -277,11 +275,11 @@ class Account{
 }
 
 class Chain{
-    constructor(root, gap, path, network){
+    constructor(root, gap, path, context){
         this.root = root;
         this.gap = gap;
         this.path = path;
-        this.network = network;
+        this.context = context;
         this.addresses = [];
         this.keyBag = [];
         this.extend();
@@ -322,7 +320,7 @@ class Chain{
         var reqs = [];
         while(addressCnt < this.gap){
             var node = this.root.derive(`m/${idx}`);
-            var addr = node.hdPublicKey.publicKey.toAddress(this.network).toString();
+            var addr = node.hdPublicKey.publicKey.toAddress(this.context.network).toString();
             this.addresses.push({addr: addr, path: this.path + '/' + idx, idx:idx, utxo:null, balance:null, totalRecv:null, state: 'unk'});
             this.keyBag.push(node.privateKey);
             addressCnt++;

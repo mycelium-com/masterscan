@@ -34,9 +34,14 @@ const cfg = {
     //network : bitcore.Networks.livenet
 };
 
+const Insight = require('./insightApi.js');
+
+
 var scanner = null;
 var lastResult = null;
 var lastTransaction = null;
+
+var insight = new Insight((cfg.network === Networks.livenet) ? 'insight.bitpay.com' : 'test-insight.bitpay.com');
 
 document.addEventListener('DOMContentLoaded', function () {
     const ui = {
@@ -110,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ui.lblRootKeyInfoError.text('Error: Enter the masterseed or the xPriv/xPub of the root node').removeClass('hidden');
         } else {
             try {
-                scanner = new Masterscan(masterseed, cfg.network);
+                scanner = new Masterscan(masterseed, cfg.network, insight);
                 ui.lblRootKeyInfo.text(scanner.rootnode);
                 scanner.scan(updateAccountList)
                     .then(accounts => {
@@ -133,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     ui.btnSendTransaction.click(() => {
         if (lastTransaction) {
-            Masterscan.broadcastTx(lastTransaction)
+            Masterscan.broadcastTx(lastTransaction, insight)
                 .then(d => {
                     console.log(d);
                     if (d.err){
@@ -172,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    Masterscan.fetchFee().then(d => ui.txFeePerByte.val(d));
+    Masterscan.fetchFee(2, insight).then(d => ui.txFeePerByte.val(d));
 });
 
 
