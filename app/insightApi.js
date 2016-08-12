@@ -3,11 +3,11 @@
 'use strict';
 
 const bitcore = require('bitcore-lib');
-const { Transaction } = bitcore;
+const {Transaction} = bitcore;
 const _ = require('lodash');
 
 
-function isAddressUsed(address, host = DEFAULT_HOST){
+function isAddressUsed(address, host = DEFAULT_HOST) {
     const endpoint = `${host}/
     ${INSIGHT_ENDPOINT}/
     addr/
@@ -29,37 +29,11 @@ function getUTXOs(addresses, host = DEFAULT_HOST) {
         body: JSON.stringify({
             addrs: addresses.join(','),
         }),
-    }).then(function(d){
+    }).then(function (d) {
         return d.json();
     });
 }
 
-function getTransactions(addresses, start, end, host = DEFAULT_HOST) {
-    const endpoint = `${host}/
-    ${INSIGHT_ENDPOINT}/
-    addrs/txs?from=${start}&to=${end}`;
-    return fetch(sanitizeURL(endpoint), {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            addrs: addresses.join(','),
-            from: start,
-            to: end,
-        }),
-    }).then(d => d.json());
-}
-
-function getTransactionInfo(txId, host = DEFAULT_HOST){
-    const endpoint = `${host}/
-    ${INSIGHT_ENDPOINT}/
-    tx/
-    ${txId}`;
-    const response = fetch(sanitizeURL(endpoint));
-    return response.json();
-}
 
 function sendTransaction(tx, host = DEFAULT_HOST) {
     const endpoint = `${host}/
@@ -76,28 +50,58 @@ function sendTransaction(tx, host = DEFAULT_HOST) {
         }),
     })
         .then(d => {
-            if (d.ok){
+            if (d.ok) {
                 return d.json();
             } else {
                 // we got a non-json error response
                 return d.text().then(txt => {
-                    return {txid:null, err:txt};
+                    return {txid: null, err: txt};
                 });
             }
         })
         .catch(err => {
-            return {txid:null, err:err};
+            return {txid: null, err: err};
         });
 }
 
-function getBlockHeight(host = DEFAULT_HOST) {
-    const endpoint = `${host}/
-    ${INSIGHT_ENDPOINT}/
-    sync`;
-    const response = fetch(sanitizeURL(endpoint));
-    const json = response.json();
-    return json.height;
-}
+/*
+ function getTransactionInfo(txId, host = DEFAULT_HOST){
+ const endpoint = `${host}/
+ ${INSIGHT_ENDPOINT}/
+ tx/
+ ${txId}`;
+ const response = fetch(sanitizeURL(endpoint));
+ return response.json();
+ }
+
+ function getBlockHeight(host = DEFAULT_HOST) {
+ const endpoint = `${host}/
+ ${INSIGHT_ENDPOINT}/
+ sync`;
+ const response = fetch(sanitizeURL(endpoint));
+ const json = response.json();
+ return json.height;
+ }
+
+ function getTransactions(addresses, start, end, host = DEFAULT_HOST) {
+ const endpoint = `${host}/
+ ${INSIGHT_ENDPOINT}/
+ addrs/txs?from=${start}&to=${end}`;
+ return fetch(sanitizeURL(endpoint), {
+ method: 'POST',
+ headers: {
+ 'Accept': 'application/json',
+ 'Content-Type': 'application/json',
+ },
+ body: JSON.stringify({
+ addrs: addresses.join(','),
+ from: start,
+ to: end,
+ }),
+ }).then(d => d.json());
+ }
+
+ */
 
 function getFeeEstimate(nblocks, host = DEFAULT_HOST) {
     const endpoint = `${host}/

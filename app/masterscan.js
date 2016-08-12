@@ -22,54 +22,70 @@ class Masterscan {
         this.coinid = network === Networks.livenet ? 0 : 1;
         this.network = network;
         this.masterseed = new Mnemonic(masterSeed);  // throws bitcore.ErrorMnemonicUnknownWordlist or bitcore.ErrorMnemonicInvalidMnemonic if not valid
-        this.rootnode =  this.masterseed.toHDPrivateKey("", network)
-        this.maxAccountGap = 5;
+        this.rootnode =  this.masterseed.toHDPrivateKey("", network);
+        this.maxAccountGap = 2;
         this.maxChainGap = {external: 5, change: 5};
+        this.bip44Accounts = [];
+        this.accounts = [];
+
     }
 
     scan(progressCallBack){
+        const slowProgressCallBack = _.debounce( ()=> {
+            if (progressCallBack){
+                progressCallBack(this.accounts);
+            }
+        }, 200);
+        return this.scanInt(slowProgressCallBack);
+    }
+
+    scanInt(progressCallBack){
         return new Promise((resolve, reject) => {
-            var accountGap = 0;
-            var idx = 0;
-            var accounts = [];
+            //this.accounts.push(this.initRootAccount());
+            this.extendAccounts(this.maxAccountGap);
+            progressCallBack();
 
-            //accounts.push(this.initRootAccount());
-
-            while (accountGap < this.maxAccountGap) {
-                var account = this.initBip44Account(idx);
-                if (!account.wasUsed) {
-                    accountGap++;
-                } else {
-                    accountGap = 0;
-                }
-                accounts.push(account)
-                idx++;
+            var req = [];
+            for (var i in this.accounts){
+                req.push(this.accounts[i].scanAccount(progressCallBack));
             }
 
-            const status = _.debounce( ()=> {
-                if (progressCallBack){
-                    progressCallBack(accounts);
+            Promise.all(req).then(d => {
+                if (this.isFullySynced) {
+                    console.log(this.accounts);
+                    console.log(this.accounts[0].getUtxo());
+                    resolve(this.accounts);
+                } else {
+                    // scan until there is a big enough account gap
+                    this.scanInt(progressCallBack);
                 }
-            }, 200);
-
-            status();
-            //test
-            accounts[0].scanAccount(status).then(d => {
-                console.log(accounts);
-                console.log(accounts[0].getUtxo());
-                resolve(accounts);
             });
-
-
         });
-        /*
-        Insight.getUTXOs(['mjbw5R3Jmj3NwnwN1Ux4gMv4fptyMgQiwf']).then(function(d){
-            console.log(d);
-        });
-        Insight.isAddressUsed('mjbw5R3Jmj3NwnwN1Ux4gMv4fptyMgQiwf').then(function(d){
-            console.log(d);
-        })
-        */
+    }
+
+    // checks if there are at least $gap addresses synced but with out balance after the last address with balance
+    get isFullySynced(){
+        var lastWithActivity = 0;
+        var finalGap = -1;
+        for (var a in this.accounts){
+            var ak = this.accounts[a];
+            if (ak.wasUsed){
+                lastWithActivity = a;
+            }
+            if (!ak.wasUsed && ak.state=='sync'){
+                finalGap = a - lastWithActivity;
+            }
+        }
+        return finalGap >= this.maxAccountGap;
+    }
+
+    extendAccounts(cnt){
+        while (cnt > 0) {
+            var account = this.initBip44Account(this.bip44Accounts.length);
+            this.accounts.push(account);
+            this.bip44Accounts.push(account);
+            cnt--
+        }
     }
 
     initRootAccount(){
@@ -161,6 +177,11 @@ class Account{
         return this.external.keyBag.concat(this.change.keyBag);
     }
 
+    get state() {
+        var states = [{state:this.external.state}, {state:this.change.state}];
+        return Chain.significantState(states);
+    }
+
     getUtxo(){
         return new UtxoSet(
             this.external.getAllUtxo()
@@ -169,7 +190,7 @@ class Account{
     }
 
     scanAccount(progressCallBack){
-        if (this.external.isFullySynced && this.internal.isFullySynced){
+        if (this.external.isFullySynced && this.change.isFullySynced){
             return Promise.resolve(true);
         }
         //const status = progressCallBack;
@@ -255,6 +276,24 @@ class Chain{
 
     get length() {
         return this.addresses.length;
+    }
+
+    get state() {
+        return Chain.significantState(this.addresses);
+    }
+
+    static significantState(arr) {
+        var stateCount = {}
+        for (var a in arr){
+            if (!stateCount[arr[a].state]) stateCount[arr[a].state] = 0;
+            stateCount[arr[a].state] ++;
+        }
+        if (stateCount['err'] > 0) return 'err';
+        if (stateCount['scan'] > 0) return 'scan';
+        if (stateCount['getutxo'] > 0) return 'scan'; // also scan... dont care what we are doing
+        if (stateCount['unk'] > 0) return 'unk'; // also scan... dont care what we are doing
+        // no other state found, we must be sync
+        return 'sync';
     }
 
     extend(){
