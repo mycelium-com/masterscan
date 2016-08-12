@@ -354,7 +354,7 @@ class Chain{
                 lastWithActivity = a;
             }
             if (ak.totalRecv == 0 && ak.state=='sync'){
-                finalGap = a - lastWithActivity;
+                finalGap = a - lastWithActivity + 1;
             }
         }
         return finalGap >= this.gap;
