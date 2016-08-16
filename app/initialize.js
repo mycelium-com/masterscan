@@ -104,13 +104,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (argNet){
         const isProdnet = argNet=='prodnet';
         cfg.network =  isProdnet ? Networks.livenet : Networks.testnet;
-        cfg.blockexplorer = isProdnet ? blockexplorers.prodnet : blockexplorers.testnet;
+    } else {
+        cfg.network = Networks.testnet;
     }
     if (cfg.network === Networks.livenet) {
+        cfg.blockexplorer = blockexplorers.prodnet;
         ui.liNetSwitcherProdnet.addClass('hidden');
         ui.spNetMode.text("Prodnet");
         insight = new Insight('insight.bitpay.com');
     } else {
+        cfg.blockexplorer = blockexplorers.testnet;
         ui.liNetSwitcherTestnet.addClass('hidden');
         ui.spNetMode.text("Testnet");
         insight = new Insight('test-insight.bitpay.com');
