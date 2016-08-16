@@ -39,6 +39,17 @@ const Insight = require('./insightApi.js');
 //const qrcode = require('jsqrcode')();
 const qr = require('./html5-qrcode.js');
 
+const blockexplorers={
+    testnet:{
+        txLink:"http://tbtc.blockr.io/tx/info/",
+        addrLink:"http://tbtc.blockr.io/address/info/"
+    },
+    prodnet:{
+        txLink:"http://btc.blockr.io/tx/info/",
+        addrLink:"http://btc.blockr.io/address/info/"
+    },
+}
+
 var scanner = null;
 var lastResult = null;
 var lastTransaction = null;
@@ -90,10 +101,10 @@ document.addEventListener('DOMContentLoaded', function () {
     /** Init **/
     const argNet = getUrlParameter('net');
     if (argNet){
-        cfg.network = argNet=='prodnet' ? Networks.livenet : Networks.testnet;
+        const isProdnet = argNet=='prodnet';
+        cfg.network =  isProdnet ? Networks.livenet : Networks.testnet;
+        cfg.blockexplorer = isProdnet ? blockexplorers.prodnet : blockexplorers.testnet;
     }
-
-
     if (cfg.network === Networks.livenet) {
         ui.liNetSwitcherProdnet.addClass('hidden');
         ui.spNetMode.text("Prodnet");
@@ -116,17 +127,21 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     Handlebars.registerHelper('txLink', function (txid, text) {
-        const ll = link("http://tbtc.blockr.io/tx/info/" + txid, text || txid);
+        const ll = link(cfg.blockexplorer.txLink + txid, text || txid);
         return ll;
     });
 
     Handlebars.registerHelper('addrHiddenLink', function (addr, text) {
-        const ll = link("http://tbtc.blockr.io/address/info/" + addr, text || addr, "hiddenLink");
+        const ll = link(cfg.blockexplorer.addrLink + addr, text || addr, "hiddenLink");
         return ll;
     });
 
     const formatSatoshi = function (sats) {
-        return sats / 100000000 + " BTC";
+        if (_.isUndefined(sats)){
+            return "n/a";
+        } else {
+            return sats / 100000000 + " BTC";
+        }
     };
 
     Handlebars.registerHelper('formatSatoshi', formatSatoshi);
@@ -174,11 +189,11 @@ document.addEventListener('DOMContentLoaded', function () {
             Masterscan.broadcastTx(lastTransaction, insight)
                 .then(d => {
                     console.log(d);
-                    if (d.err){
-                        toastr.error("Broadcast failed: " + d.err, "Unable to send");
-                    } else {
-                        toastr.success("Transaction broadcast!<br>Transaction id: " + Handlebars.escapeExpression(d.txid), 'Sending...');
-                    }
+                    toastr.success("Transaction broadcast!<br>Transaction id: " + Handlebars.escapeExpression(d.txid), 'Sending...');
+                })
+                .catch( e => {
+                    console.log(e);
+                    toastr.error("Broadcast failed: " + e, "Unable to send");
                 });
         }
     });
@@ -268,12 +283,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     Masterscan.fetchFee(2, insight)
         .then(d => {
-            if (d.err){
-                toastr.info("Unable to fetch current transaction fee level. A default value is used. " + d.err, "Unable to query fee");
-                ui.txFeePerByte.val(20);
-            } else {
-                ui.txFeePerByte.val(d);
-            }
+            ui.txFeePerByte.val(d);
+        }).catch(e => {
+            toastr.info("Unable to fetch current transaction fee level. A default value is used. " + e, "Unable to query fee");
+            ui.txFeePerByte.val(50);
         });
 
     function getUrlParameter(sParam) {

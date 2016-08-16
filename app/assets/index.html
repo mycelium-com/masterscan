@@ -377,7 +377,7 @@
     <h2>Accounts</h2>
     {{#each this}}
     <div class="account">
-        <h3>{{name}} - {{path}}, {{state}}</h3>
+        <h3>{{name}} - {{path}}, balance: {{formatSatoshi balance}} ({{state}})</h3>
         <h4>Receiving addresses</h4>
         {{> addresses external.addresses}}
         <h4>Change addresses</h4>
@@ -389,7 +389,7 @@
 <script id="addresslist-template" type="text/x-handlebars-template">
     {{#each this}}
     <div class="address {{#if totalRecv}}withActivity{{/if}} {{state}}">
-        {{path}} - {{addrHiddenLink addr 0}}: {{balance}} ({{totalRecv}})
+        {{path}} - {{addrHiddenLink addr 0}}: {{balance}} ({{totalRecv}}){{#if err}} - <strong>{{err}}</strong>{{/if}}
     </div>
     {{/each}}
 </script>

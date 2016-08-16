@@ -68,7 +68,7 @@ class Masterscan {
             if (ak.wasUsed){
                 lastWithActivity = a;
             }
-            if (!ak.wasUsed && ak.state=='sync'){
+            if ((!ak.wasUsed && ak.state=='sync') || ak.state=='err'){
                 finalGap = a - lastWithActivity;
             }
         }
@@ -131,11 +131,7 @@ class Masterscan {
     static fetchFee(blocks=2, insight){
         return insight.getFeeEstimate(blocks)
             .then(d => {
-                if (d.err){
-                    return d;
-                } else {
-                    return Math.ceil(d[blocks] * 100000000 / 1024)
-                }
+                return Math.ceil(d[blocks] * 100000000 / 1024)
             });
     }
 
@@ -179,6 +175,14 @@ class Accounts extends Array{
         }
         return cnt;
     }
+
+    get balance(){
+        var total = 0;
+        for (const i in this){
+            total += this[i].balance;
+        }
+        return total;
+    }
 }
 
 class Account{
@@ -204,6 +208,10 @@ class Account{
     get state() {
         var states = [{state:this.external.state}, {state:this.change.state}];
         return Chain.significantState(states);
+    }
+
+    get balance(){
+        return this.getUtxo().totalAmount;
     }
 
     getUtxo(){
@@ -365,7 +373,7 @@ class Chain{
             if (ak.totalRecv > 0){
                 lastWithActivity = a;
             }
-            if (ak.totalRecv == 0 && ak.state=='sync'){
+            if ((ak.totalRecv == 0 && ak.state=='sync') || ak.state=='err'){
                 finalGap = a - lastWithActivity + 1;
             }
         }
