@@ -43,7 +43,7 @@ var scanner = null;
 var lastResult = null;
 var lastTransaction = null;
 
-var insight = new Insight((cfg.network === Networks.livenet) ? 'insight.bitpay.com' : 'test-insight.bitpay.com');
+var insight;
 
 document.addEventListener('DOMContentLoaded', function () {
     const ui = {
@@ -67,7 +67,12 @@ document.addEventListener('DOMContentLoaded', function () {
         spPercentageFee: $('#spPercentageFee'),
         spSendingAmount: $('#spSendingAmount'),
         spTxSize: $('#spTxSize'),
+        spNetMode: $('#spNetMode'),
         aCheckTx: $('#aCheckTx'),
+        aNetSwitcherProdnet: $('#aNetSwitcherProdnet'),
+        aNetSwitcherTestnet: $('#aNetSwitcherTestnet'),
+        liNetSwitcherProdnet: $('#liNetSwitcherProdnet'),
+        liNetSwitcherTestnet: $('#liNetSwitcherTestnet'),
     };
 
     const tmpl = {
@@ -81,6 +86,23 @@ document.addEventListener('DOMContentLoaded', function () {
     toastr.options.closeButton = true;
 
     Handlebars.registerPartial('addresses', tmpl.addresslist);
+
+    /** Init **/
+    const argNet = getUrlParameter('net');
+    if (argNet){
+        cfg.network = argNet=='prodnet' ? Networks.livenet : Networks.testnet;
+    }
+
+
+    if (cfg.network === Networks.livenet) {
+        ui.liNetSwitcherProdnet.addClass('hidden');
+        ui.spNetMode.text("Prodnet");
+        insight = new Insight('insight.bitpay.com');
+    } else {
+        ui.liNetSwitcherTestnet.addClass('hidden');
+        ui.spNetMode.text("Testnet");
+        insight = new Insight('test-insight.bitpay.com');
+    }
 
     function link(url, tx, css) {
         return new Handlebars.SafeString("<a href='" +
@@ -167,7 +189,12 @@ document.addEventListener('DOMContentLoaded', function () {
         ui.divReader.html5_qrcode(function(data){
                 var str = (data.indexOf('bitcoin:') === 0) ? data.substring(8) : data;
                 console.log('QR code detected: ' + str);
-                ui.txReceiverAddress.val(str);
+                if (Address.isValid(str, cfg.network)){
+                    ui.txReceiverAddress.val(str);
+                    clearTx();
+                } else {
+                    toastr.warning("Not a valid address: " + data, "Invalid QR code");
+                }
                 ui.divReader.html5_qrcode_stop();
                 ui.modalQrReader.modal('hide');
             },
@@ -248,5 +275,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 ui.txFeePerByte.val(d);
             }
         });
+
+    function getUrlParameter(sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
+    }
 });
 

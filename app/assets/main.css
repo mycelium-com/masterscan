@@ -30,3 +30,7 @@ a.hiddenLink:hover {
 .address.getutxo{
     font-style: italic;
 }
+
+#ulNetSelection button{
+    margin: 8px;
+}

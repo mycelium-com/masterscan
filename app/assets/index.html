@@ -64,10 +64,21 @@
         <a class="navbar-brand" href="#">Masterscan (Alpha)</a>
     </div>
 
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+    <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
             <li class="active"><a href="#bip32" data-toggle="tab">Home</a></li>
             <li><a href="#help" data-toggle="tab">Help</a></li>
+        </ul>
+        <ul class="pull-right nav navbar-nav" id="ulNetSelection">
+            <li class="active">
+                <div class="dropdown pull-right" id="divNetSelection">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><span id="spNetMode">n/a</span><span class="caret"></span></button>
+                    <ul class="dropdown-menu ">
+                        <li id="liNetSwitcherProdnet"><a href="?net=prodnet" id="aNetSwitcherProdnet">Switch to Prodnet</a></li>
+                        <li id="liNetSwitcherTestnet"><a href="?net=testnet" id="aNetSwitcherTestnet">Switch to Testnet</a></li>
+                    </ul>
+                </div>
+            </li>
         </ul>
     </div><!-- /.navbar-collapse -->
 </nav>
