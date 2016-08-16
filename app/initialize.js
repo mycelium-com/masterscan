@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         lastResult = accounts;
                         updateAccountList(accounts);
                         updateTransaction(accounts);
-                        const spendable = formatSatoshi(accounts.getUtxo().totalAmount);
+                        const spendable = formatSatoshi(utxos.totalAmount);
                         toastr.success("Found " + accounts.numUsedAccounts + " accounts with a total of " + spendable + " spendable", "Synchronization successfull")
                     });
             } catch (e) {
@@ -250,13 +250,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateAccountList(accounts) {
-        const utxos = accounts.getUtxo();
+        const utxos = accounts.getActiveUtxo();
         ui.divAccounts.html(tmpl.accounts(accounts));
         ui.divUtxos.html(tmpl.utxos(utxos));
     }
 
     function updateTransaction(accounts) {
-        const utxos = accounts.getUtxo();
+        const utxos = accounts.getActiveUtxo();
         const keyBag = accounts[0].keyBag;
         const addr = ui.txReceiverAddress.val();
         const fee = ui.txFeePerByte.val();

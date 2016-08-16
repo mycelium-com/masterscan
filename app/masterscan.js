@@ -171,6 +171,14 @@ class Accounts extends Array{
     getUtxo(){
         var all = new UtxoSet([]);
         for (const i in this){
+            all = all.concat(this[i].getUtxo());
+        }
+        return all;
+    }
+
+    getActiveUtxo(){
+        var all = new UtxoSet([]);
+        for (const i in this){
             if (this[i].active) {
                 all = all.concat(this[i].getUtxo());
             }
