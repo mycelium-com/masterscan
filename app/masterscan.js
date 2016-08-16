@@ -130,7 +130,13 @@ class Masterscan {
 
     static fetchFee(blocks=2, insight){
         return insight.getFeeEstimate(blocks)
-            .then(d => Math.ceil(d[blocks] * 100000000 / 1024));
+            .then(d => {
+                if (d.err){
+                    return d;
+                } else {
+                    return Math.ceil(d[blocks] * 100000000 / 1024)
+                }
+            });
     }
 
     static broadcastTx(tx, insight){

@@ -17,13 +17,12 @@ class Insight {
 
     isAddressUsed(address) {
         const endpoint = `/addr/${address}?noTxList=1`;
-        return fetch(this.sanitizeURL(endpoint))
-            .then(d => d.json());
+        return this.unwrapJson(fetch(this.sanitizeURL(endpoint)));
     }
 
     getUTXOs(addresses) {
         const endpoint = '/addrs/utxo';
-        return fetch(this.sanitizeURL(endpoint), {
+        return this.unwrapJson(fetch(this.sanitizeURL(endpoint), {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -32,15 +31,13 @@ class Insight {
             body: JSON.stringify({
                 addrs: addresses.join(','),
             }),
-        }).then(function (d) {
-            return d.json();
-        });
+        }));
     }
 
 
     sendTransaction(tx) {
         const endpoint = `/tx/send`;
-        return fetch(this.sanitizeURL(endpoint), {
+        return this.unwrapJson(fetch(this.sanitizeURL(endpoint), {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -49,17 +46,21 @@ class Insight {
             body: JSON.stringify({
                 rawtx: tx.serialize(),
             }),
+        }));
+
+    }
+
+    unwrapJson(response){
+        return response.then(d => {
+            if (d.ok) {
+                return d.json();
+            } else {
+                // we got a non-json error response
+                return d.text().then(txt => {
+                    return {txid: null, err: txt};
+                });
+            }
         })
-            .then(d => {
-                if (d.ok) {
-                    return d.json();
-                } else {
-                    // we got a non-json error response
-                    return d.text().then(txt => {
-                        return {txid: null, err: txt};
-                    });
-                }
-            })
             .catch(err => {
                 return {txid: null, err: err};
             });
@@ -106,7 +107,7 @@ class Insight {
 
     getFeeEstimate(nblocks) {
         const endpoint = `/utils/estimatefee?nbBlocks=${nblocks}`;
-        return fetch(this.sanitizeURL(endpoint)).then(d => d.json());
+        return this.unwrapJson(fetch(this.sanitizeURL(endpoint)));
     }
 
     sanitizeURL(url) {

@@ -41,7 +41,6 @@ var init = function($) {
                     }
                     clearTimeout($.data(currentElem[0], "timeout"));
                     $.data(currentElem[0], "timeout", setTimeout(scan, 500));
-                    console.log("set2: " + $.data(currentElem[0],"timeout"));
 
                 };//end snapshot function
 
@@ -57,7 +56,6 @@ var init = function($) {
                     clearTimeout($.data(currentElem[0], "timeout"));
                     $.data(currentElem[0],"stop", false);
                     $.data(currentElem[0], "timeout", setTimeout(scan, 1000));
-                    console.log("set1: " + $.data(currentElem[0],"timeout"));
                 };
 
                 // Call the getUserMedia method with our callback functions
@@ -81,7 +79,6 @@ var init = function($) {
                 $(this).data('stream').getVideoTracks().forEach(function(videoTrack) {
                     videoTrack.stop();
                 });
-                console.log("clr: " + $.data(this,"timeout"));
 
                 clearTimeout($.data(this,"timeout"));
                 $.data(this,"stop", true);

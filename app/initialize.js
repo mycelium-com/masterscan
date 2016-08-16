@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
         divAccounts: $('#accounts'),
         divUtxos: $('#utxos'),
         divReader: $('#divReader'),
+        divTxTransaction: $('#divTxTransaction'),
+        divTxFeePerByte: $('#divTxFeePerByte'),
         modalQrReader: $('#modalQrReader'),
         spTotalFee: $('#spTotalFee'),
         spPercentageFee: $('#spPercentageFee'),
@@ -132,7 +134,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         toastr.success("Found " + accounts.numUsedAccounts + " accounts with a total of " + spendable + " spendable", "Synchronization successfull")
                     });
             } catch (e) {
-                ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
+                if (e.name == "bitcore.ErrorMnemonicUnknownWordlist" || e.name =="bitcore.ErrorMnemonicInvalidMnemonic") {
+                    ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
+                } else {
+                    throw e;
+                }
             }
         }
     });
@@ -178,6 +184,21 @@ document.addEventListener('DOMContentLoaded', function () {
         ui.divReader.html5_qrcode_stop();
     });
 
+    ui.txReceiverAddress.on('input propertychange paste', () => {
+       clearTx();
+    });
+
+    function clearTx(){
+        ui.txTransaction.val("");
+        ui.spTotalFee.text("n/a");
+        ui.spPercentageFee.text("n/a");
+        ui.spSendingAmount.text("n/a");
+        ui.spTxSize.text("n/a");
+        ui.aCheckTx.attr('href', "https://coinb.in/#verify");
+        ui.divTxTransaction.removeClass("has-error")
+        ui.divTxFeePerByte.removeClass("has-error")
+    }
+
     function updateAccountList(accounts) {
         const utxos = accounts.getUtxo();
 
@@ -191,6 +212,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const addr = ui.txReceiverAddress.val();
         const fee = ui.txFeePerByte.val();
         // todo validate
+
+        if (!Address.isValid(addr, cfg.network)){
+            clearTx();
+            ui.divTxTransaction.addClass("has-error");
+            return;
+        }
+
+        if (_.isNumber(fee)){
+            clearTx();
+            ui.divTxFeePerByte.addClass("has-error");
+            return;
+        }
+
         scanner.prepareTx(utxos, keyBag, addr, fee).then(tx => {
             lastTransaction = tx;
             const rawTx = tx.toString();
@@ -205,20 +239,14 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    Masterscan.fetchFee(2, insight).then(d => ui.txFeePerByte.val(d));
+    Masterscan.fetchFee(2, insight)
+        .then(d => {
+            if (d.err){
+                toastr.info("Unable to fetch current transaction fee level. A default value is used. " + d.err, "Unable to query fee");
+                ui.txFeePerByte.val(20);
+            } else {
+                ui.txFeePerByte.val(d);
+            }
+        });
 });
 
-
-class FakeTransaction{
-    constructor(tx){
-        this.tx = tx;
-    }
-
-    serialize(){
-        return this.tx;
-    }
-
-    toString(){
-        return this.tx;
-    }
-}
