@@ -266,12 +266,24 @@
         </div>
         <div id="{{@index}}" class="panel-collapse collapse" role="tabpanel">
             <table class="table table-condensed">
-            <th colspan="4">Receiving addresses</th>
-            {{> addresses external.addresses}}
+                <thead>
+                    <tr>
+                        <th colspan="4">Receiving addresses</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{> addresses external.addresses}}
+                </tbody>
             </table>
             <table class="table table-condensed">
-            <th colspan="4">Change addresses</th>
-            {{> addresses change.addresses}}
+                <thead>
+                    <tr>
+                        <th colspan="4">Change addresses</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{> addresses change.addresses}}
+                </tbody>
             </table>
         </div>
     </div>
@@ -294,13 +306,25 @@
         <h4>Total: {{formatSatoshi totalAmount}}</h4>
     </div>
     <table class="table">
-        {{#each utxoArray}}
-        <tr class="utxo">
-            <td>{{addrPath}}</td>
-            <td>{{addrHiddenLink address 0}}</td>
-            <td>{{amount}} ({{confirmations}})</td>
-            <td>{{txLink txid "tx"}}</td>
+        <thead>
+        <tr>
+            <th>BIP 32 Path</th>
+            <th>Address</th>
+            <th>Amount</th>
+            <th>Confirmations</th>
+            <th>Link</th>
         </tr>
+        </thead>
+        {{#each utxoArray}}
+        <tbody>
+            <tr class="utxo">
+                <td>{{addrPath}}</td>
+                <td>{{addrHiddenLink address 0}}</td>
+                <td>{{amount}}</td>
+                <td>({{confirmations}})</td>
+                <td>{{txLink txid "tx"}}</td>
+            </tr>
+        </tbody>
         {{/each}}
     </table>
 </script>
