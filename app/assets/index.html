@@ -6,10 +6,50 @@
     <meta name="viewport"
           content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi"/>
     <title>Masterscan</title>
+
+    <script type="text/javascript" src="jsqrcode/grid.js"></script>
+    <script type="text/javascript" src="jsqrcode/version.js"></script>
+    <script type="text/javascript" src="jsqrcode/detector.js"></script>
+    <script type="text/javascript" src="jsqrcode/formatinf.js"></script>
+    <script type="text/javascript" src="jsqrcode/errorlevel.js"></script>
+    <script type="text/javascript" src="jsqrcode/bitmat.js"></script>
+    <script type="text/javascript" src="jsqrcode/datablock.js"></script>
+    <script type="text/javascript" src="jsqrcode/bmparser.js"></script>
+    <script type="text/javascript" src="jsqrcode/datamask.js"></script>
+    <script type="text/javascript" src="jsqrcode/rsdecoder.js"></script>
+    <script type="text/javascript" src="jsqrcode/gf256poly.js"></script>
+    <script type="text/javascript" src="jsqrcode/gf256.js"></script>
+    <script type="text/javascript" src="jsqrcode/decoder.js"></script>
+    <script type="text/javascript" src="jsqrcode/qrcode.js"></script>
+    <script type="text/javascript" src="jsqrcode/findpat.js"></script>
+    <script type="text/javascript" src="jsqrcode/alignpat.js"></script>
+    <script type="text/javascript" src="jsqrcode/databr.js"></script>
+
     <script src="javascripts/app.js"></script>
+
+
     <link rel="stylesheet" href="main.css">
 </head>
 <body>
+
+<div id="modalQrReader" class="modal fade">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Scan address QR code</h4>
+            </div>
+            <div class="modal-body">
+                <div id="divReader" class="center-block" style="width:300px;height:250px"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <nav class="navbar navbar-default" role="navigation">
@@ -99,12 +139,19 @@
 
                             <div class="form-group" title="">
                                 <label class="col-lg-2 control-label" for="txReceiverAddress">Receiver's address</label>
-                                <div class="col-lg-10">
+                                <div class="col-lg-9">
                                     <div class="row">
                                         <div class="col-lg-12">
                                             <input type="text" id="txReceiverAddress" class="form-control" placeholder=""
                                                    value="2Mtrbtz9pMNGuv2MgrzeetHxee4G1ZaMGhZ"
                                             >
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-1">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <input type="button" id="btnQrCode" class="form-control" placeholder="" value="QR">
                                         </div>
                                     </div>
                                 </div>

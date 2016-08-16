@@ -18,6 +18,7 @@
     "bitcore-mnemonic": "^1.1.1",
     "bootstrap": "^3.3.7",
     "bower": "^1.7.9",
+    "canvas": "^1.4.0",
     "handlebars": "^4.0.5",
     "jquery": "^3.1.0",
     "sass-brunch": "^2.6.3",

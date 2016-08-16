@@ -36,6 +36,8 @@ const cfg = {
 
 const Insight = require('./insightApi.js');
 
+//const qrcode = require('jsqrcode')();
+const qr = require('./html5-qrcode.js');
 
 var scanner = null;
 var lastResult = null;
@@ -52,10 +54,13 @@ document.addEventListener('DOMContentLoaded', function () {
         btnScan: $('#btnScan'),
         btnUpdateTransaction: $('#btnUpdateTransaction'),
         btnSendTransaction: $('#btnSendTransaction'),
+        btnQrCode: $('#btnQrCode'),
         lblRootKeyInfo: $('#lblRootKeyInfo'),
         lblRootKeyInfoError: $('#lblRootKeyInfoError'),
         divAccounts: $('#accounts'),
         divUtxos: $('#utxos'),
+        divReader: $('#divReader'),
+        modalQrReader: $('#modalQrReader'),
         spTotalFee: $('#spTotalFee'),
         spPercentageFee: $('#spPercentageFee'),
         spSendingAmount: $('#spSendingAmount'),
@@ -148,6 +153,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
         }
+    });
+
+    ui.btnQrCode.click(() => {
+        qr(jQuery);
+        ui.modalQrReader.modal('show');
+        ui.divReader.html5_qrcode(function(data){
+                var str = (data.indexOf('bitcoin:') === 0) ? data.substring(8) : data;
+                console.log('QR code detected: ' + str);
+                ui.txReceiverAddress.val(str);
+                ui.divReader.html5_qrcode_stop();
+                ui.modalQrReader.modal('hide');
+            },
+            function(error){
+                console.log(error);
+            }, function(videoError){
+                //the video stream could be opened
+                console.log(error);
+                toastr.info("Error: " + error, "Unable to open camera");
+            });
+    });
+
+    ui.modalQrReader.on('hidden.bs.modal', function (e) {
+        ui.divReader.html5_qrcode_stop();
     });
 
     function updateAccountList(accounts) {
