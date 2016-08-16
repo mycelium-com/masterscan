@@ -58,6 +58,7 @@ var insight;
 
 document.addEventListener('DOMContentLoaded', function () {
     const ui = {
+        body: $('body'),
         txRootNode: $('#txRootNode'),
         txReceiverAddress: $('#txReceiverAddress'),
         txTransaction: $('#txTransaction'),
@@ -146,10 +147,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     Handlebars.registerHelper('formatSatoshi', formatSatoshi);
 
-    Handlebars.registerHelper('getTotal', function (utxoSet) {
-        return formatSatoshi(utxoSet.totalAmount);
-    });
-
     ui.btnScan.click(function () {
         ui.lblRootKeyInfoError.text('').addClass('hidden');
         ui.lblRootKeyInfo.text('');
@@ -230,6 +227,17 @@ document.addEventListener('DOMContentLoaded', function () {
        clearTx();
     });
 
+    ui.body.on("change", "input.cbAccount", event => {
+        var path = $(event.target).attr('data-path');
+        var acc = scanner.accounts.getByPath(path);
+        if (acc){
+            acc.active = $(event.target).is(":checked");
+        }
+
+        updateAccountList(scanner.accounts);
+        updateTransaction(scanner.accounts);
+    });
+
     function clearTx(){
         ui.txTransaction.val("");
         ui.spTotalFee.text("n/a");
@@ -243,7 +251,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateAccountList(accounts) {
         const utxos = accounts.getUtxo();
-
         ui.divAccounts.html(tmpl.accounts(accounts));
         ui.divUtxos.html(tmpl.utxos(utxos));
     }
@@ -253,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const keyBag = accounts[0].keyBag;
         const addr = ui.txReceiverAddress.val();
         const fee = ui.txFeePerByte.val();
-        // todo validate
 
         if (!Address.isValid(addr, cfg.network)){
             clearTx();
@@ -264,6 +270,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (_.isNumber(fee)){
             clearTx();
             ui.divTxFeePerByte.addClass("has-error");
+            return;
+        }
+
+        if (utxos.length == 0){
+            clearTx();
             return;
         }
 

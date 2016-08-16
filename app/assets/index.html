@@ -377,7 +377,7 @@
     <h2>Accounts</h2>
     {{#each this}}
     <div class="account">
-        <h3>{{name}} - {{path}}, balance: {{formatSatoshi balance}} ({{state}})</h3>
+        <h3><input type="checkbox" {{#if active}}checked="checked"{{/if}} class="cbAccount" data-path="{{path}}"> {{name}} - {{path}}, balance: {{formatSatoshi balance}} ({{state}})</h3>
         <h4>Receiving addresses</h4>
         {{> addresses external.addresses}}
         <h4>Change addresses</h4>

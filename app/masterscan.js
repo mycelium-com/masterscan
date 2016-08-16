@@ -143,7 +143,7 @@ class Masterscan {
 
 class UtxoSet{
     constructor(utxos){
-        this.utxoArray = utxos;
+        this.utxoArray = utxos || [];
     }
 
     get totalAmount(){
@@ -153,6 +153,14 @@ class UtxoSet{
         }
         return total;
     }
+
+    get length(){
+        return this.utxoArray.length;
+    }
+
+    concat(other){
+        return new UtxoSet(this.utxoArray.concat(other.utxoArray));
+    }
 }
 
 class Accounts extends Array{
@@ -161,11 +169,17 @@ class Accounts extends Array{
     }
 
     getUtxo(){
-        var all = [];
+        var all = new UtxoSet([]);
         for (const i in this){
-            all = all.concat(this[i].getUtxo().utxoArray);
+            if (this[i].active) {
+                all = all.concat(this[i].getUtxo());
+            }
         }
-        return new UtxoSet(all);
+        return all;
+    }
+
+    getByPath(path){
+        return _.find(this, e => e.path == path);
     }
 
     get numUsedAccounts(){
@@ -192,7 +206,7 @@ class Account{
         this.path = path;
         this.context = context;
         this.name = name;
-
+        this.active = true; // include it in the UTXO set
         this.external = new Chain(root.derive('m/0'), gaps.external, path + '/0', this.context);
         this.change = new Chain(root.derive('m/1'), gaps.change, path + '/1', this.context);
     }
@@ -215,10 +229,7 @@ class Account{
     }
 
     getUtxo(){
-        return new UtxoSet(
-            this.external.getAllUtxo()
-                .concat(this.change.getAllUtxo())
-        )
+        return this.external.getAllUtxo().concat(this.change.getAllUtxo());
     }
 
     scanAccount(progressCallBack){
@@ -351,7 +362,7 @@ class Chain{
                 ret = ret.concat(this.addresses[a].utxo);
             }
         }
-        return ret;
+        return new UtxoSet(ret);
     }
 
     getAddressesToScan(){
