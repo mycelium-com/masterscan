@@ -24,6 +24,8 @@ exports.config =
       js coffee
       """
 
+      transforms: [["babelify", { "presets": ["es2015"], "sourceMaps": false }]]
+
       bundles:
         'javascripts/app.js':
 # Passed to browserify.
