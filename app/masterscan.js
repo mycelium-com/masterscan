@@ -136,7 +136,7 @@ class Masterscan {
     }
 
     static broadcastTx(tx, insight){
-        return insight.sendTransaction(tx, this.context.url);
+        return insight.sendTransaction(tx);
     }
 
 }
