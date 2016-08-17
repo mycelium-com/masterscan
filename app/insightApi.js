@@ -1,5 +1,6 @@
 'use strict';
 
+require('whatwg-fetch');
 const bitcore = require('bitcore-lib');
 const Transaction = bitcore.Transaction;
 const _ = require('lodash');

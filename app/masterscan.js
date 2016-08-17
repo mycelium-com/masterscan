@@ -67,13 +67,13 @@ class Masterscan {
         progressCallBack();
 
         var req = [];
-        for (var i in this.accounts){
-            req.push(this.accounts[i].scanAccount(progressCallBack));
+        for (var i in this.accounts.accs){
+            req.push(this.accounts.accs[i].scanAccount(progressCallBack));
         }
 
         return Promise.all(req).then(() => {
             if (this.isFullySynced || !this.hasPrivateRootnode) {
-                console.log(this.accounts);
+                console.log(this.accounts.accs);
                 console.log(this.accounts.getUtxo());
                 return this.accounts;
             } else {
@@ -103,8 +103,8 @@ class Masterscan {
     get isFullySynced(){
         var lastWithActivity = 0;
         var finalGap = -1;
-        for (var a in this.accounts){
-            var ak = this.accounts[a];
+        for (var a in this.accounts.accs){
+            var ak = this.accounts.accs[a];
             if (ak.wasUsed){
                 lastWithActivity = a;
             }
@@ -207,59 +207,68 @@ class UtxoSet{
     }
 }
 
-class Accounts extends Array{
+class Accounts {
     constructor(){
-        super();
+        this.accs = [];
     }
 
     getUtxo(){
         var all = new UtxoSet([]);
-        for (var i in this){
-            all = all.concat(this[i].getUtxo());
+        for (var i in this.accs){
+            all = all.concat(this.accs[i].getUtxo());
         }
         return all;
     }
 
     getActiveUtxo(){
         var all = new UtxoSet([]);
-        for (var i in this){
-            if (this[i].active) {
-                all = all.concat(this[i].getUtxo());
+        for (var i in this.accs){
+            if (this.accs[i].active) {
+                all = all.concat(this.accs[i].getUtxo());
             }
         }
         return all;
     }
 
     getByPath(path){
-        return _.find(this, e => e.path == path);
+        return _.find(this.accs, e => e.path == path);
     }
 
     get keyBag() {
-        return this.reduce((prev, curr) => {
+        return this.accs.reduce((prev, curr) => {
             return prev.concat(curr.keyBag);
         }, []);
     }
 
     get state() {
-        var states = this.map((curr) => {return{state: curr.state}});
+        var states = this.accs.map((curr) => {return{state: curr.state}});
         return Chain.significantState(states);
     }
 
     get numUsedAccounts(){
         var cnt=0;
-        for (var i in this){
-            if (this[i].wasUsed) cnt++;
+        for (var i in this.accs){
+            if (this.accs[i].wasUsed) cnt++;
         }
         return cnt;
     }
 
+    get length(){
+        return this.accs.length;
+    }
+
     get balance(){
         var total = 0;
-        for (var i in this){
-            total += this[i].balance;
+        for (var i in this.accs){
+            total += this.accs[i].balance;
         }
         return total;
     }
+
+    push(account){
+        this.accs.push(account)
+    }
+
 }
 
 

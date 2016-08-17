@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
 
     ui.body.on('hide.bs.collapse show.bs.collapse', function (e) {
-        var acc = scanner.accounts[e.target.id];
+        var acc = scanner.accounts.accs[e.target.id];
         if (acc){
             var was = acc.isShown;
             acc.isShown = (e.type == 'show');
