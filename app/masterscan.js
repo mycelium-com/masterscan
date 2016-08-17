@@ -136,7 +136,7 @@ class Masterscan {
     }
 
     static broadcastTx(tx, insight){
-        return insight.sendTransaction(tx, this.context.url);
+        return insight.sendTransaction(tx);
     }
 
 }
@@ -170,7 +170,7 @@ class Accounts extends Array{
 
     getUtxo(){
         var all = new UtxoSet([]);
-        for (const i in this){
+        for (var i in this){
             all = all.concat(this[i].getUtxo());
         }
         return all;
@@ -178,7 +178,7 @@ class Accounts extends Array{
 
     getActiveUtxo(){
         var all = new UtxoSet([]);
-        for (const i in this){
+        for (var i in this){
             if (this[i].active) {
                 all = all.concat(this[i].getUtxo());
             }
@@ -192,7 +192,7 @@ class Accounts extends Array{
 
     get numUsedAccounts(){
         var cnt=0;
-        for (const i in this){
+        for (var i in this){
             if (this[i].wasUsed) cnt++;
         }
         return cnt;
@@ -200,7 +200,7 @@ class Accounts extends Array{
 
     get balance(){
         var total = 0;
-        for (const i in this){
+        for (var i in this){
             total += this[i].balance;
         }
         return total;
