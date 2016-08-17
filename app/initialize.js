@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     toastr.options.timeOut = 30 * 1000;
-    toastr.options.extendedTimeOut = 0;
+    toastr.options.extendedTimeOut = 60 * 1000;
     toastr.options.closeButton = true;
 
     Handlebars.registerPartial('addresses', tmpl.addresslist);
@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ui.liNetSwitcherTestnet.addClass('hidden');
         ui.spNetMode.text("Testnet");
         insight = new Insight('test-insight.bitpay.com');
+        //insight = new Insight('https://insight-testnet.mycelium.com');
     }
 
     function link(url, tx, css) {
@@ -131,8 +132,19 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     Handlebars.registerHelper('txLink', function (txid, text) {
-        const ll = link(cfg.blockexplorer.txLink + txid, text || txid);
+        const ll = link(cfg.blockexplorer.txLink + txid, text || _.truncate(txid, {length:16}));
         return ll;
+    });
+
+    Handlebars.registerHelper('fmtState', function (state) {
+        var cls='', hint='';
+        switch (state){
+            case 'scan': cls='glyphicon2 glyphicon-refresh glyphicon-spin'; hint='synchronizing'; break;
+            case 'sync': cls='glyphicon2 glyphicon-ok'; hint='synchronized'; break;
+            case 'err': cls='glyphicon2 glyphicon-alert'; hint='error'; break;
+            default: cls='glyphicon2 glyphicon-question-sign'; hint='unknown state ' + state; break;
+        }
+        return new Handlebars.SafeString(`<span class='${cls}' title='${hint}'></span>`);
     });
 
     Handlebars.registerHelper('addrHiddenLink', function (addr, text) {
@@ -144,11 +156,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (_.isUndefined(sats)){
             return "n/a";
         } else {
-            return sats / 100000000 + " BTC";
+            return  sats / 100000000 + " BTC";;
         }
     };
 
-    Handlebars.registerHelper('formatSatoshi', formatSatoshi);
+    Handlebars.registerHelper('formatSatoshi', function (sats) {
+        var fmt = formatSatoshi(sats);
+        if (sats === 0){
+            return new Handlebars.SafeString("<span class='zeroVal'>" + fmt + "</span>");
+        } else {
+            return fmt;
+        }
+    });
 
     ui.btnScan.click(function () {
         ui.lblRootKeyInfoError.text('').addClass('hidden');
@@ -168,7 +187,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         updateAccountList(accounts);
                         updateTransaction(accounts);
                         const spendable = formatSatoshi(utxos.totalAmount);
-                        toastr.success("Found " + accounts.numUsedAccounts + " accounts with a total of " + spendable + " spendable", "Synchronization successfull")
+                        if (accounts.state == 'err') {
+                            toastr.warning("Found " + accounts.numUsedAccounts + " accounts with a total of " + spendable + " spendable. There where some errors while checking for funds", "Synchronization finished with errors");
+                        }else {
+                            toastr.success("Found " + accounts.numUsedAccounts + " accounts with a total of " + spendable + " spendable", "Synchronization successful");
+                        }
                     });
             } catch (e) {
                 if (e.name == "bitcore.ErrorMnemonicUnknownWordlist" || e.name =="bitcore.ErrorMnemonicInvalidMnemonic") {
@@ -241,6 +264,20 @@ document.addEventListener('DOMContentLoaded', function () {
         updateTransaction(scanner.accounts);
     });
 
+    ui.body.on("click", ".panel.account", event => {
+        // allow the whole account header act as collapse-toggle
+        $(event.target).find('.toggler').click();
+    })
+
+    ui.body.on('hide.bs.collapse show.bs.collapse', function (e) {
+        var acc = scanner.accounts[e.target.id];
+        if (acc){
+            var was = acc.isShown;
+            acc.isShown = (e.type == 'show');
+            console.log("id " + e.target.id + " was:" + was + " now:" + acc.isShown );
+        }
+    });
+
     function clearTx(){
         ui.txTransaction.val("");
         ui.spTotalFee.text("n/a");
@@ -260,9 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateTransaction(accounts) {
         const utxos = accounts.getActiveUtxo();
-        const keyBag = accounts.reduce((prev, curr) => {
-            return prev.concat(curr.keyBag);
-        }, []);
+        const keyBag = accounts.keyBag;
         const addr = ui.txReceiverAddress.val();
         const fee = ui.txFeePerByte.val();
 

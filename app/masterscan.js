@@ -38,8 +38,11 @@ class Masterscan {
     }
 
     scanInt(progressCallBack){
-        //this.accounts.push(this.initRootAccount());
-        this.extendAccounts(this.maxAccountGap);
+        if (!this.hasRootAccount){
+            this.accounts.push(this.initRootAccount());
+            this.hasRootAccount = true;
+        }
+        this.extendAccounts(1);
         progressCallBack();
 
         var req = [];
@@ -50,7 +53,7 @@ class Masterscan {
         return Promise.all(req).then(() => {
             if (this.isFullySynced) {
                 console.log(this.accounts);
-                console.log(this.accounts[0].getUtxo());
+                console.log(this.accounts.getUtxo());
                 return this.accounts;
             } else {
                 // scan until there is a big enough account gap
@@ -69,7 +72,7 @@ class Masterscan {
                 lastWithActivity = a;
             }
             if ((!ak.wasUsed && ak.state=='sync') || ak.state=='err'){
-                finalGap = a - lastWithActivity;
+                finalGap = a - lastWithActivity + 1;
             }
         }
         return finalGap >= this.maxAccountGap;
@@ -190,6 +193,17 @@ class Accounts extends Array{
         return _.find(this, e => e.path == path);
     }
 
+    get keyBag() {
+        return this.reduce((prev, curr) => {
+            return prev.concat(curr.keyBag);
+        }, []);
+    }
+
+    get state() {
+        var states = this.map((curr) => {return{state: curr.state}});
+        return Chain.significantState(states);
+    }
+
     get numUsedAccounts(){
         var cnt=0;
         for (var i in this){
@@ -215,8 +229,17 @@ class Account{
         this.context = context;
         this.name = name;
         this.active = true; // include it in the UTXO set
+        this.isShown = null; //
         this.external = new Chain(root.derive('m/0'), gaps.external, path + '/0', this.context);
         this.change = new Chain(root.derive('m/1'), gaps.change, path + '/1', this.context);
+    }
+
+    get shown(){
+        if (this.isShown === null){
+            return this.wasUsed;
+        } else {
+            return this.isShown;
+        }
     }
 
     get wasUsed() {

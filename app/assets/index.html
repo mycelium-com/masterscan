@@ -260,16 +260,23 @@
         <div class="panel-heading" role="tab">
             <h4 class="panel-title">
                 <input type="checkbox" {{#if active}}checked="checked"{{/if}} class="cbAccount" data-path="{{path}}">
-                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accounts" href="#{{@index}}">
-                    &nbsp; {{name}} - {{path}}, balance: {{formatSatoshi balance}} ({{state}})
+                <a class="toggler" role="button" data-toggle="collapse" data-parent="#accounts" href="#{{@index}}">
+                    &nbsp; <strong>{{name}}</strong> - {{path}}, balance: {{formatSatoshi balance}} <span class="pull-right">{{fmtState state}}</span>
                 </a>
             </h4>
         </div>
-        <div id="{{@index}}" class="panel-collapse collapse" role="tabpanel">
+        <div id="{{@index}}" class="panel-collapse collapse {{#if shown}}in{{/if}}" role="tabpanel" >
             <table class="table table-condensed">
                 <thead>
                     <tr>
                         <th colspan="4">Receiving addresses</th>
+                    </tr>
+                    <tr>
+                        <th>BIP 32 Path</th>
+                        <th>Address</th>
+                        <th>Current Balance</th>
+                        <th>Total received</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -280,6 +287,13 @@
                 <thead>
                     <tr>
                         <th colspan="4">Change addresses</th>
+                    </tr>
+                    <tr>
+                        <th>BIP 32 Path</th>
+                        <th>Address</th>
+                        <th>Current Balance</th>
+                        <th>Total received</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -296,7 +310,8 @@
     <tr class="address {{#if totalRecv}}info{{/if}} {{#if err}}danger{{/if}} {{state}}">
         <td>{{path}}</td>
         <td>{{addrHiddenLink addr 0}}</td>
-        <td>{{balance}} ({{totalRecv}})</td>
+        <td>{{formatSatoshi balance}}</td>
+        <td>{{formatSatoshi totalRecv}}</td>
         <td>{{#if err}}{{err}}{{/if}}</td>
     </tr>
     {{/each}}
@@ -313,7 +328,7 @@
             <th>Address</th>
             <th>Amount</th>
             <th>Confirmations</th>
-            <th>Link</th>
+            <th>Funding Transaction</th>
         </tr>
         </thead>
         {{#each utxoArray}}
@@ -321,9 +336,9 @@
             <tr class="utxo">
                 <td>{{addrPath}}</td>
                 <td>{{addrHiddenLink address 0}}</td>
-                <td>{{amount}}</td>
-                <td>({{confirmations}})</td>
-                <td>{{txLink txid "tx"}}</td>
+                <td>{{formatSatoshi satoshis}}</td>
+                <td>{{confirmations}}</td>
+                <td>{{txLink txid 0}}</td>
             </tr>
         </tbody>
         {{/each}}
