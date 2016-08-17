@@ -259,8 +259,9 @@
     <div class="panel panel-default account">
         <div class="panel-heading" role="tab">
             <h4 class="panel-title">
+                <input type="checkbox" {{#if active}}checked="checked"{{/if}} class="cbAccount" data-path="{{path}}">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accounts" href="#{{@index}}">
-                    <input type="checkbox" {{#if active}}checked="checked"{{/if}} class="cbAccount" data-path="{{path}}">&nbsp; {{name}} - {{path}}, balance: {{formatSatoshi balance}} ({{state}})
+                    &nbsp; {{name}} - {{path}}, balance: {{formatSatoshi balance}} ({{state}})
                 </a>
             </h4>
         </div>
