@@ -2,11 +2,11 @@ image: node
 
 pages:
   script:
-  - npm install -g bower brunch browserify
+  - npm install -g bower brunch browserify babelify babel-preset-es2015
   - npm install
   - brunch build --production || true # return value is 1... but no error is shown?!
   - mkdir public/javascripts/
-  - browserify app/initialize.js > public/javascripts/app.js
+  - browserify app/initialize.js  -t [ babelify --presets [ es2015  ] ] > public/javascripts/app.js
 
 
   artifacts:

@@ -13,6 +13,8 @@ exports.config =
   modules:
     wrapper: false
     definition: false
+  server:
+    hostname: "0.0.0.0"
 
   plugins:
     browserify:
