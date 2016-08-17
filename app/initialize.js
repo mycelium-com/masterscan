@@ -260,7 +260,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateTransaction(accounts) {
         const utxos = accounts.getActiveUtxo();
-        const keyBag = accounts[0].keyBag;
+        const keyBag = accounts.reduce((prev, curr) => {
+            return prev.concat(curr.keyBag);
+        }, []);
         const addr = ui.txReceiverAddress.val();
         const fee = ui.txFeePerByte.val();
 
