@@ -3,14 +3,11 @@
 const _ = require('lodash');
 
 const bitcore = require('bitcore-lib');
-const {
-    HDPrivateKey,
-    HDPublicKey,
-    Networks,
-    Unit,
-    Transaction,
-    Block,
-} = bitcore;
+const HDPrivateKey = bitcore.HDPrivateKey;
+const HDPublicKey = bitcore.HDPublicKey;
+const Networks = bitcore.Networks;
+const Transaction = bitcore.Transaction;
+
 
 const UnspentOutput = Transaction.UnspentOutput;
 

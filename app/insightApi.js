@@ -1,13 +1,12 @@
 'use strict';
 
 const bitcore = require('bitcore-lib');
-const {Transaction} = bitcore;
+const Transaction = bitcore.Transaction;
 const _ = require('lodash');
 const INSIGHT_ENDPOINT = 'api';
-const DEFAULT_HOST = 'test-insight.bitpay.com';
 
 class Insight {
-    constructor(host = DEFAULT_HOST){
+    constructor(host){
         this.host = host;
     }
 

@@ -1,4 +1,3 @@
-//var qrcode = require('jsqrcode')();
 const jQuery = require('jquery');
 
 var init = function($) {

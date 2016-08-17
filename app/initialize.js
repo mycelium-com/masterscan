@@ -18,14 +18,9 @@ const styleToastr = require('../node_modules/toastr/build/toastr.css'); //cssify
 
 
 const bitcore = require('bitcore-lib');
-const {
-    HDPrivateKey,
-    Networks,
-    Unit,
-    Transaction,
-    Block,
-    Address
-} = bitcore;
+const Address = bitcore.Address;
+const Networks = bitcore.Networks;
+const Transaction = bitcore.Transaction;
 
 const Masterscan = require('./masterscan');
 
