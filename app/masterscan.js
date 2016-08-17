@@ -5,6 +5,7 @@ const _ = require('lodash');
 const bitcore = require('bitcore-lib');
 const {
     HDPrivateKey,
+    HDPublicKey,
     Networks,
     Unit,
     Transaction,
@@ -20,8 +21,24 @@ class Masterscan {
     constructor(masterSeed, network = Networks.defaultNetwork, insight) {
         this.coinid = network === Networks.livenet ? 0 : 1;
         this.context = {network:network, insight: insight};
-        this.masterseed = new Mnemonic(masterSeed);  // throws bitcore.ErrorMnemonicUnknownWordlist or bitcore.ErrorMnemonicInvalidMnemonic if not valid
-        this.rootnode =  this.masterseed.toHDPrivateKey("", network);
+        try {
+            this.masterseed = new Mnemonic(masterSeed);  // throws bitcore.ErrorMnemonicUnknownWordlist or bitcore.ErrorMnemonicInvalidMnemonic if not valid
+            this.rootnode =  this.masterseed.toHDPrivateKey("", network);
+        } catch (e){
+            if (e.name == "bitcore.ErrorMnemonicUnknownWordlist" || e.name =="bitcore.ErrorMnemonicInvalidMnemonic") {
+                // the wordlist is not valid, check if its a HDKey
+                if (HDPublicKey.isValidSerialized(masterSeed)) {
+                    this.rootnode = new HDPublicKey(masterSeed);
+                }else if (HDPrivateKey.isValidSerialized(masterSeed)){
+                    this.rootnode = new HDPrivateKey(masterSeed);
+                } else {
+                    throw {message: e.message, name:'errMasterseed'};
+                }
+
+            } else {
+                throw e;
+            }
+        }
         this.maxAccountGap = 5;
         this.maxChainGap = {external: 25, change: 5};
         this.bip44Accounts = new Accounts();
@@ -42,7 +59,10 @@ class Masterscan {
             this.accounts.push(this.initRootAccount());
             this.hasRootAccount = true;
         }
-        this.extendAccounts(1);
+        if (this.hasPrivateRootnode) {
+            // only derive subaccounts, if we have the private HdRootNode, otherwise it makes no sense (due to hardened derivation)
+            this.extendAccounts(1);
+        }
         progressCallBack();
 
         var req = [];
@@ -51,7 +71,7 @@ class Masterscan {
         }
 
         return Promise.all(req).then(() => {
-            if (this.isFullySynced) {
+            if (this.isFullySynced || !this.hasPrivateRootnode) {
                 console.log(this.accounts);
                 console.log(this.accounts.getUtxo());
                 return this.accounts;
@@ -60,6 +80,22 @@ class Masterscan {
                 return this.scanInt(progressCallBack);
             }
         });
+    }
+
+    get publicRootnode(){
+        return this.hasPrivateRootnode ? this.rootnode.hdPublicKey : this.rootnode;
+    }
+
+    get hasPrivateRootnode(){
+        return this.rootnode instanceof HDPrivateKey;
+    }
+
+    get rootnodeInfo(){
+        if (this.hasPrivateRootnode){
+            return this.rootnode + " / " + this.publicRootnode;
+        } else {
+            return this.publicRootnode;
+        }
     }
 
     // checks if there are at least $gap addresses synced but with out balance after the last address with balance
@@ -376,7 +412,8 @@ class Chain{
         var reqs = [];
         while(addressCnt < this.gap){
             var node = this.root.derive(`m/${idx}`);
-            var addr = node.hdPublicKey.publicKey.toAddress(this.context.network).toString();
+            var pubNode = node.hdPublicKey || node;
+            var addr = pubNode.publicKey.toAddress(this.context.network).toString();
             this.addresses.push({addr: addr, path: this.path + '/' + idx, idx:idx, utxo:null, balance:null, totalRecv:null, state: 'unk'});
             this.keyBag.push(node.privateKey);
             addressCnt++;

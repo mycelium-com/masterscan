@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             try {
                 scanner = new Masterscan(masterseed, cfg.network, insight);
-                ui.lblRootKeyInfo.text(scanner.rootnode);
+                ui.lblRootKeyInfo.text(scanner.rootnodeInfo);
                 scanner.scan(updateAccountList)
                     .then(accounts => {
                         const utxos = accounts.getUtxo();
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     });
             } catch (e) {
-                if (e.name == "bitcore.ErrorMnemonicUnknownWordlist" || e.name =="bitcore.ErrorMnemonicInvalidMnemonic") {
+                if (e.name == "errMasterseed") {
                     ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
                 } else {
                     throw e;
