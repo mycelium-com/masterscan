@@ -39,7 +39,7 @@ class Masterscan {
                 throw e;
             }
         }
-        this.maxAccountGap = 5;
+        this.maxAccountGap = 6;
         this.maxChainGap = {external: 25, change: 5};
         this.bip44Accounts = new Accounts();
         this.accounts = new Accounts();
@@ -58,6 +58,10 @@ class Masterscan {
         if (!this.hasRootAccount){
             this.accounts.push(this.initRootAccount());
             this.hasRootAccount = true;
+        }
+        if (!this.hasCoreAccount){
+            this.accounts.push(this.initCoreAccount());
+            this.hasCoreAccount = true;
         }
         if (this.hasPrivateRootnode) {
             // only derive subaccounts, if we have the private HdRootNode, otherwise it makes no sense (due to hardened derivation)
@@ -125,6 +129,10 @@ class Masterscan {
 
     initRootAccount(){
         return new Account(this.rootnode, this.maxChainGap, 'm', "Root account", this.context);
+    }
+
+    initCoreAccount(){
+        return new CoreAccount(this.rootnode.derive("m/0'/0'"), this.maxChainGap, "m/0'/0'", "BitcoinCore account", this.context);
     }
 
     initBip44Account(idx){
@@ -257,6 +265,7 @@ class Accounts extends Array{
     }
 }
 
+
 class Account{
     constructor(root, gaps, path, name, context){
         this.root = root;
@@ -265,9 +274,11 @@ class Account{
         this.context = context;
         this.name = name;
         this.active = true; // include it in the UTXO set
-        this.isShown = null; //
-        this.external = new Chain(root.derive('m/0'), gaps.external, path + '/0', this.context);
-        this.change = new Chain(root.derive('m/1'), gaps.change, path + '/1', this.context);
+        this.isShown = null;
+        this.chains = [
+            new Chain(root.derive('m/0'), gaps.external, path + '/0',"External chain", this.context),
+            new Chain(root.derive('m/1'), gaps.change, path + '/1', "Change chain", this.context)
+        ];
     }
 
     get shown(){
@@ -279,15 +290,20 @@ class Account{
     }
 
     get wasUsed() {
-        return this.external.wasUsed || this.change.wasUsed;
+        for (var i in this.chains){
+            if (this.chains[i].wasUsed) {
+                return true;
+            }
+        }
+        return false;
     }
 
     get keyBag() {
-        return this.external.keyBag.concat(this.change.keyBag);
+        return this.chains.reduce((p,c)=>p.concat(c.keyBag), []);
     }
 
     get state() {
-        var states = [{state:this.external.state}, {state:this.change.state}];
+        var states = this.chains.map(c => {return {state:c.state}});
         return Chain.significantState(states);
     }
 
@@ -296,19 +312,31 @@ class Account{
     }
 
     getUtxo(){
-        return this.external.getAllUtxo().concat(this.change.getAllUtxo());
+        return this.chains.reduce((p,c)=>p.concat(c.getAllUtxo()), new UtxoSet([]));
+    }
+
+    get isFullySynced(){
+        for (var i in this.chains){
+            if (!this.chains[i].isFullySynced) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    initScanChain(progressCallBack){
+        return Promise.all(
+            this.chains.map(c => this.scanChain(c, progressCallBack))
+        )
     }
 
     scanAccount(progressCallBack){
-        if (this.external.isFullySynced && this.change.isFullySynced){
+        if (this.isFullySynced){
             return Promise.resolve(true);
         }
-        //const status = progressCallBack;
-        var ext = this.scanChain(this.external, progressCallBack);
-        var change = this.scanChain(this.change, progressCallBack);
-        return Promise.all([ext, change])
+        return this.initScanChain(progressCallBack)
             .then(() => {
-                if (this.external.isFullySynced && this.change.isFullySynced){
+                if (this.isFullySynced){
                     return true;
                 } else {
                     // scan until everything is fully synced
@@ -360,17 +388,30 @@ class Account{
                     })
             );
         }
-
         return Promise.all(req);
+    }
+}
+
+
+// can be used with bitcoin core >0.13
+// https://github.com/bitcoin/bitcoin/blob/0.13/doc/release-notes.md#hierarchical-deterministic-key-generation
+class CoreAccount extends Account{
+    constructor(root, gaps, path, name, context){
+        super(root, gaps, path, name, context);
+        this.chains = [
+            new CoreChain(root, gaps.external, path, "HD Chain", this.context)
+        ];
     }
 
 }
 
+
 class Chain{
-    constructor(root, gap, path, context){
+    constructor(root, gap, path, label, context){
         this.root = root;
         this.gap = gap;
         this.path = path;
+        this.label = label;
         this.context = context;
         this.addresses = [];
         this.keyBag = [];
@@ -406,12 +447,16 @@ class Chain{
         return 'sync';
     }
 
+    deriveNode(idx){
+        return this.root.derive(`m/${idx}`);
+    }
+
     extend(){
         var addressCnt = 0;
         var idx = this.length;
         var reqs = [];
         while(addressCnt < this.gap){
-            var node = this.root.derive(`m/${idx}`);
+            var node = this.deriveNode(idx);
             var pubNode = node.hdPublicKey || node;
             var addr = pubNode.publicKey.toAddress(this.context.network).toString();
             this.addresses.push({addr: addr, path: this.path + '/' + idx, idx:idx, utxo:null, balance:null, totalRecv:null, state: 'unk'});
@@ -457,6 +502,12 @@ class Chain{
             }
         }
         return finalGap >= this.gap;
+    }
+}
+
+class CoreChain extends Chain {
+    deriveNode(idx){
+        return this.root.derive(`m/${idx}'`);
     }
 }
 

@@ -263,43 +263,32 @@
             </h4>
         </div>
         <div id="{{@index}}" class="panel-collapse collapse {{#if shown}}in{{/if}}" role="tabpanel" >
-            <table class="table table-condensed">
-                <thead>
-                    <tr>
-                        <th colspan="4">Receiving addresses</th>
-                    </tr>
-                    <tr>
-                        <th>BIP 32 Path</th>
-                        <th>Address</th>
-                        <th>Current Balance</th>
-                        <th>Total received</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{> addresses external.addresses}}
-                </tbody>
-            </table>
-            <table class="table table-condensed">
-                <thead>
-                    <tr>
-                        <th colspan="4">Change addresses</th>
-                    </tr>
-                    <tr>
-                        <th>BIP 32 Path</th>
-                        <th>Address</th>
-                        <th>Current Balance</th>
-                        <th>Total received</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{> addresses change.addresses}}
-                </tbody>
-            </table>
+            {{#each chains}}
+            {{> chain this}}
+            {{/each}}
         </div>
     </div>
     {{/each}}
+</script>
+
+<script id="chain-template" type="text/x-handlebars-template">
+    <table class="table table-condensed">
+        <thead>
+        <tr>
+            <th colspan="4">{{label}}</th>
+        </tr>
+        <tr>
+            <th>BIP 32 Path</th>
+            <th>Address</th>
+            <th>Current Balance</th>
+            <th>Total received</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {{> addresses addresses}}
+        </tbody>
+    </table>
 </script>
 
 <script id="addresslist-template" type="text/x-handlebars-template">

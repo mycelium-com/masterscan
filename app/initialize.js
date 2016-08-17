@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
         accounts: Handlebars.compile($("#accounts-template").html()),
         utxos: Handlebars.compile($("#utxos-template").html()),
         addresslist: Handlebars.compile($("#addresslist-template").html()),
+        chain: Handlebars.compile($("#chain-template").html()),
     };
 
     toastr.options.timeOut = 30 * 1000;
@@ -98,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
     toastr.options.closeButton = true;
 
     Handlebars.registerPartial('addresses', tmpl.addresslist);
+    Handlebars.registerPartial('chain', tmpl.chain);
 
     /** Init **/
     const argNet = getUrlParameter('net');
