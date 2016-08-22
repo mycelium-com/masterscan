@@ -63,12 +63,17 @@ class Masterscan {
             this.accounts.push(this.initRootAccount());
             this.hasRootAccount = true;
         }
-        if (!this.hasCoreAccount && this.hasPrivateRootnode){
-            this.accounts.push(this.initCoreAccount());
-            this.hasCoreAccount = true;
-        }
+
+        // only derive subaccounts, if we have the private HdRootNode, otherwise it makes no sense (due to hardened derivation)
         if (this.hasPrivateRootnode) {
-            // only derive subaccounts, if we have the private HdRootNode, otherwise it makes no sense (due to hardened derivation)
+
+            // add account type that BitcoinCore uses since 0.13
+            if (!this.hasCoreAccount){
+                this.accounts.push(this.initCoreAccount());
+                this.hasCoreAccount = true;
+            }
+
+            // add one "normal" bip44 account
             this.extendAccounts(1);
         }
         progressCallBack();
