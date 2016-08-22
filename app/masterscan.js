@@ -187,7 +187,12 @@ class Masterscan {
     static fetchFee(blocks=2, insight){
         return insight.getFeeEstimate(blocks)
             .then(d => {
-                return Math.ceil(d[blocks] * 100000000 / 1024)
+                const fee = d[blocks];
+                if (fee <= 0){
+                    throw new Error('Invalid fee ' +  fee);
+                } else {
+                    return Math.ceil(fee * 100000000 / 1024);
+                }
             });
     }
 
