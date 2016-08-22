@@ -25,8 +25,9 @@ const Transaction = bitcore.Transaction;
 const Masterscan = require('./masterscan');
 
 const cfg = {
-    network: bitcore.Networks.testnet
-    //network : bitcore.Networks.livenet
+    network: bitcore.Networks.testnet,
+    //network : bitcore.Networks.livenet,
+    version: '0.1',
 };
 
 const Insight = require('./insightApi.js');
@@ -61,7 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
         btnScan: $('#btnScan'),
         btnUpdateTransaction: $('#btnUpdateTransaction'),
         btnSendTransaction: $('#btnSendTransaction'),
-        btnQrCode: $('#btnQrCode'),
+        btnQrCodeReceiver: $('#btnQrCodeReceiver'),
+        btnQrCodeSeed: $('#btnQrCodeSeed'),
         lblRootKeyInfo: $('#lblRootKeyInfo'),
         lblRootKeyInfoError: $('#lblRootKeyInfoError'),
         divAccounts: $('#accounts'),
@@ -70,10 +72,12 @@ document.addEventListener('DOMContentLoaded', function () {
         divTxTransaction: $('#divTxTransaction'),
         divTxFeePerByte: $('#divTxFeePerByte'),
         modalQrReader: $('#modalQrReader'),
+        modalDisclaimer: $('#modalDisclaimer'),
         spTotalFee: $('#spTotalFee'),
         spPercentageFee: $('#spPercentageFee'),
         spSendingAmount: $('#spSendingAmount'),
         spTxSize: $('#spTxSize'),
+        spVersion: $('#spVersion'),
         spNetMode: $('#spNetMode'),
         aCheckTx: $('#aCheckTx'),
         aNetSwitcherProdnet: $('#aNetSwitcherProdnet'),
@@ -109,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ui.liNetSwitcherProdnet.addClass('hidden');
         ui.spNetMode.text("Prodnet");
         insight = new Insight('insight.bitpay.com');
+        ui.modalDisclaimer.modal('show');
     } else {
         cfg.blockexplorer = blockexplorers.testnet;
         ui.liNetSwitcherTestnet.addClass('hidden');
@@ -166,6 +171,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    ui.spVersion.text("(V" + cfg.version + ")");
+
     ui.btnScan.click(function () {
         ui.lblRootKeyInfoError.text('').addClass('hidden');
         ui.lblRootKeyInfo.text('');
@@ -218,29 +225,43 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    ui.btnQrCode.click(() => {
+    ui.btnQrCodeReceiver.click(() => {
+        scanQr(function(data){
+            var str = (data.indexOf('bitcoin:') === 0) ? data.substring(8) : data;
+            console.log('QR code detected: ' + str);
+            if (Address.isValid(str, cfg.network)){
+                ui.txReceiverAddress.val(str);
+                clearTx();
+            } else {
+                toastr.warning("Not a valid address: " + data, "Invalid QR code");
+            }
+        });
+    });
+
+    ui.btnQrCodeSeed.click(() => {
+        scanQr(function(data){
+            ui.txRootNode.val(data);
+        });
+    });
+
+    function scanQr(callback){
         qr(jQuery);
         ui.modalQrReader.modal('show');
-        ui.divReader.html5_qrcode(function(data){
-                var str = (data.indexOf('bitcoin:') === 0) ? data.substring(8) : data;
-                console.log('QR code detected: ' + str);
-                if (Address.isValid(str, cfg.network)){
-                    ui.txReceiverAddress.val(str);
-                    clearTx();
-                } else {
-                    toastr.warning("Not a valid address: " + data, "Invalid QR code");
-                }
+        ui.divReader.html5_qrcode(function(data) {
+                callback(data);
                 ui.divReader.html5_qrcode_stop();
                 ui.modalQrReader.modal('hide');
             },
             function(error){
                 console.log(error);
-            }, function(videoError){
+            },
+            function(videoError){
                 //the video stream could be opened
                 console.log(error);
                 toastr.info("Error: " + error, "Unable to open camera");
-            });
-    });
+            }
+        );
+    }
 
     ui.modalQrReader.on('hidden.bs.modal', function (e) {
         ui.divReader.html5_qrcode_stop();

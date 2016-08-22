@@ -34,6 +34,29 @@
     </div>
 </div>
 
+<div id="modalDisclaimer" class="modal fade" data-backdrop="static" data-keyboard="false" >
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Disclaimer</h4>
+            </div>
+            <div class="modal-body">
+                <b>Warning:</b> this tool, if used incorrectly, might lead to loss of your current and/or future bitcoin.<br><br>
+                <ul>
+                    <li>Use this tool only as a last resort.</li>
+                    <li>Don't reuse any masterseed you entered here for your wallet afterwards.</li>
+                    <li>Only run this tool if you are absolutely sure that your computer is safe (no keylogger, malware, etc).</li>
+                    <li>All your addresses will get fetched via an external service. Your private keys will never get sent to any server.</li>
+                    <li>This tool is provided as-is. Mycelium is not liable for any loss that may occur by using this tool.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Accept</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <nav class="navbar navbar-default" role="navigation">
     <!-- Brand and toggle get grouped for better mobile display -->
@@ -44,7 +67,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">Masterscan (Alpha)</a>
+        <a class="navbar-brand" href="#">Masterscan <span id="spVersion"></span></a>
     </div>
 
     <div class="collapse navbar-collapse">
@@ -73,8 +96,13 @@
                         <div class="col-lg-10">
                             <div class="row">
                                 <div class="col-lg-10">
-                                    <input type="text" id="txRootNode" class="form-control"
-                                           placeholder="12 words or xpriv.../xpub...">
+                                    <div class="input-group">
+                                        <input type="text" id="txRootNode" class="form-control" placeholder="12 words or xpriv.../xpub...">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" id="btnQrCodeSeed" type="button" title="Scan QR code..."><i class="glyphicon glyphicon-qrcode"></i></button>
+                                        </span>
+                                    </div>
+
                                 </div>
                                 <div class="col-lg-2">
                                     <input class="btn btn-primary btn-block" type="button" value="Scan..."
@@ -124,17 +152,15 @@
 
                             <div id="divTxTransaction" class="form-group" title="">
                                 <label class="col-lg-2 control-label" for="txReceiverAddress">Receiver's address</label>
-                                <div class="col-lg-9">
+                                <div class="col-lg-10">
                                     <div class="row">
                                         <div class="col-lg-12">
-                                            <input type="text" id="txReceiverAddress" class="form-control" placeholder="">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-1">
-                                    <div class="row">
-                                        <div class="col-lg-12">
-                                            <input type="button" id="btnQrCode" class="form-control" placeholder="" value="QR">
+                                            <div class="input-group">
+                                                <input type="text" id="txReceiverAddress" class="form-control" placeholder="">
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-default" id="btnQrCodeReceiver" type="button" title="Scan QR code..."><i class="glyphicon glyphicon-qrcode"></i></button>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
