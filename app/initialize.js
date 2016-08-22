@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
         divReader: $('#divReader'),
         divTxTransaction: $('#divTxTransaction'),
         divTxFeePerByte: $('#divTxFeePerByte'),
+        divRootNode: $('#divRootNode'),
         modalQrReader: $('#modalQrReader'),
         modalDisclaimer: $('#modalDisclaimer'),
         spTotalFee: $('#spTotalFee'),
@@ -175,11 +176,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     ui.btnScan.click(function () {
         ui.lblRootKeyInfoError.text('').addClass('hidden');
+        ui.divRootNode.removeClass('has-error');
         ui.lblRootKeyInfo.text('');
 
         const masterseed = ui.txRootNode.val();
         if (_.isEmpty(masterseed)) {
             ui.lblRootKeyInfoError.text('Error: Enter the masterseed or the xPriv/xPub of the root node').removeClass('hidden');
+            ui.divRootNode.addClass('has-error');
         } else {
             try {
                 scanner = new Masterscan(masterseed, cfg.network, insight);
@@ -200,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) {
                 if (e.name == "errMasterseed") {
                     ui.lblRootKeyInfoError.text('Error: ' + e.message).removeClass('hidden');
+                    ui.divRootNode.addClass('has-error');
                 } else {
                     throw e;
                 }

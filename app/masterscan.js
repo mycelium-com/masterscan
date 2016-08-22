@@ -23,15 +23,22 @@ class Masterscan {
             this.rootnode =  this.masterseed.toHDPrivateKey("", network);
         } catch (e){
             if (e.name == "bitcore.ErrorMnemonicUnknownWordlist" || e.name =="bitcore.ErrorMnemonicInvalidMnemonic") {
-                // the wordlist is not valid, check if its a HDKey
-                if (HDPublicKey.isValidSerialized(masterSeed)) {
-                    this.rootnode = new HDPublicKey(masterSeed);
-                }else if (HDPrivateKey.isValidSerialized(masterSeed)){
-                    this.rootnode = new HDPrivateKey(masterSeed);
-                } else {
-                    throw {message: e.message, name:'errMasterseed'};
+                try {
+                    // the wordlist is not valid, check if its a HDKey
+                    if (HDPublicKey.isValidSerialized(masterSeed, network)) {
+                        this.rootnode = new HDPublicKey(masterSeed);
+                    } else if (HDPrivateKey.isValidSerialized(masterSeed, network)) {
+                        this.rootnode = new HDPrivateKey(masterSeed);
+                    } else {
+                        throw {message: e.message, name: 'errMasterseed'};
+                    }
+                }catch (e2){
+                    if (e2.name == "bitcore.ErrorInvalidB58Checksum"){
+                        throw {message: e.message, name: 'errMasterseed'};
+                    } else {
+                        throw e2;
+                    }
                 }
-
             } else {
                 throw e;
             }
@@ -56,7 +63,7 @@ class Masterscan {
             this.accounts.push(this.initRootAccount());
             this.hasRootAccount = true;
         }
-        if (!this.hasCoreAccount){
+        if (!this.hasCoreAccount && this.hasPrivateRootnode){
             this.accounts.push(this.initCoreAccount());
             this.hasCoreAccount = true;
         }

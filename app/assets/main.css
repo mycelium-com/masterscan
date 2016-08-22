@@ -27,6 +27,11 @@ a.hiddenLink:hover {
     color: gray;
 }
 
+.text-error {
+    color: darkred;
+}
+
+
 .address.getutxo{
     font-style: italic;
 }
