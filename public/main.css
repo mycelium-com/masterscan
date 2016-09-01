@@ -1,0 +1,94 @@
+.text-monospace {
+    font-family: monospace;
+}
+
+a.hiddenLink {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+a.hiddenLink:hover {
+    text-decoration: underline;
+}
+
+.address.withActivity{
+    font-weight: bold;
+}
+
+.address.err{
+    color: darkred;
+}
+
+.address.unk {
+    color: lightgray;
+}
+
+.address.scan {
+    color: gray;
+}
+
+.text-error {
+    color: darkred;
+}
+
+
+.address.getutxo{
+    font-style: italic;
+}
+
+#ulNetSelection button{
+    margin: 8px;
+}
+
+.panel.account {
+    cursor: pointer;
+}
+
+.zeroVal {
+    color: gray;
+}
+
+@font-face {
+    font-family: 'GlyphiconsLocal';
+    src: url('fonts/glyphicons-halflings-regular.eot');
+    src: url('fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('fonts/glyphicons-halflings-regular.woff2') format('woff2'), url('fonts/glyphicons-halflings-regular.woff') format('woff'), url('fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+}
+
+.glyphicon2 {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-family: 'GlyphiconsLocal';
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.fa-spin-custom, .glyphicon-spin {
+    -webkit-animation: spin 1000ms infinite linear;
+    animation: spin 1000ms infinite linear;
+}
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
+}
+@keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
+}
+

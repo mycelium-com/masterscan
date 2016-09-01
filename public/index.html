@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+    <meta name="viewport"
+          content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi"/>
+    <title>Masterscan</title>
+
+    <script type="text/javascript" src="jsqrcode/qr.js"></script>
+    <script src="javascripts/app.js"></script>
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+<div id="modalQrReader" class="modal fade">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Scan address QR code</h4>
+            </div>
+            <div class="modal-body">
+                <div id="divReader" class="center-block" style="width:300px;height:250px"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalDisclaimer" class="modal fade" data-backdrop="static" data-keyboard="false" >
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Disclaimer</h4>
+            </div>
+            <div class="modal-body">
+                <b>Warning:</b> this tool, if used incorrectly, might lead to loss of your current and/or future bitcoin.<br><br>
+                <ul>
+                    <li>Use this tool only as a last resort.</li>
+                    <li>Don't reuse any masterseed you entered here for your wallet afterwards.</li>
+                    <li>Only run this tool if you are absolutely sure that your computer is safe (no keylogger, malware, etc).</li>
+                    <li>All your addresses will get fetched via an external service. Your private keys will never get sent to any server.</li>
+                    <li>This tool is provided as-is. Mycelium is not liable for any loss that may occur by using this tool.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Accept</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<nav class="navbar navbar-default" role="navigation">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Masterscan <span id="spVersion"></span></a>
+    </div>
+
+    <div class="collapse navbar-collapse">
+        <ul class="pull-right nav navbar-nav" id="ulNetSelection">
+            <li class="active">
+                <div class="dropdown pull-right" id="divNetSelection">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><span id="spNetMode">n/a</span><span class="caret"></span></button>
+                    <ul class="dropdown-menu ">
+                        <li id="liNetSwitcherProdnet"><a href="?net=prodnet" id="aNetSwitcherProdnet">Switch to Prodnet</a></li>
+                        <li id="liNetSwitcherTestnet"><a href="?net=testnet" id="aNetSwitcherTestnet">Switch to Testnet</a></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div><!-- /.navbar-collapse -->
+</nav>
+
+<div class="container">
+    <div class="tab-content">
+        <div class="tab-pane fade in active">
+            <form class="form-horizontal" method="get" onSubmit="return false;">
+                <fieldset>
+                    <legend>HD wallet sweeper</legend>
+                    <div class="form-group" title="" id="divRootNode">
+                        <label class="col-lg-2 control-label" for="txRootNode">HD Root node</label>
+                        <div class="col-lg-10">
+                            <div class="row">
+                                <div class="col-lg-10">
+                                    <input type="text" id="txRootNode" class="form-control" placeholder="12 words or xpriv.../xpub...">
+                                    <!--<div class="input-group">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" id="btnQrCodeSeed" type="button" title="Scan QR code..."><i class="glyphicon2 glyphicon-qrcode"></i></button>
+                                        </span>
+                                    </div>-->
+                                </div>
+                                <div class="col-lg-2">
+                                    <input class="btn btn-primary btn-block" type="button" value="Scan..."
+                                           id="btnScan"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <p id="lblRootKeyInfoError" class="text-error hidden"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-2 control-label" for="lblRootKeyInfo">Root Key</label>
+                        <div class="col-lg-10">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <span id="lblRootKeyInfo" class="text-muted small text-monospace"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Accounts discovered</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="panel-group" id="accounts"></div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">UTXOs</h3>
+                </div>
+                <div id="utxos"></div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Send all available funds</h3>
+                </div>
+                <div class="panel-body">
+
+                    <form class="form-horizontal" method="get" onSubmit="return false;">
+                        <fieldset>
+
+                            <div id="divTxTransaction" class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="txReceiverAddress">Receiver's address</label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="input-group">
+                                                <input type="text" id="txReceiverAddress" class="form-control" placeholder="">
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-default" id="btnQrCodeReceiver" type="button" title="Scan QR code..."><i class="glyphicon2 glyphicon-qrcode"></i></button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="divTxFeePerByte" class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="txFeePerByte">Transaction fee <br>(satoshi/byte)</label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <input type="text" id="txFeePerByte" class="form-control" placeholder="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" title="">
+                                <div class="col-lg-2"></div>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <input class="btn btn-default" type="button" value="Update transaction"
+                                                   id="btnUpdateTransaction"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="txTransaction">Resulting Transaction</label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <strong>Sending amount:</strong><span id="spSendingAmount">n/a</span>
+                                            <strong>Total fee:</strong><span id="spTotalFee">n/a</span>
+                                            <strong>Percentage:</strong><span id="spPercentageFee">n/a</span>
+                                            <strong>Size of transaction:</strong><span id="spTxSize">n/a</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" title="">
+                                <label class="col-lg-2 control-label" for="txTransaction">Raw transaction
+                                    <span class="label label-warning" style="display: none;" id="unsignedtxlabel">Unsigned transaction</span>
+                                </label>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <textarea type="text" id="txTransaction" class="form-control" disabled></textarea>
+                                            You can check this transaction with <span style="font-family:monospace">bitcoind decoderawtransaction</span>
+                                            or via <a id="aCheckTx" href="https://coinb.in/#verify" target="_blank">Coinb.in</a>.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" title="">
+                                <div class="col-lg-2"></div>
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <input class="btn btn-default" type="button" value="Send transaction"
+                                                   id="btnSendTransaction"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </fieldset>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>
+            The contents of this page are released under the <a href="http://opensource.org/licenses/mit-license.php">MIT
+            License</a><br>
+        </span>
+        </p>
+    </footer>
+</div>
+
+<div class="modal fade" id="qroverlay" tabindex="-1" role="dialog" aria-labelledby="QR Code" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body" style="text-align:center">
+                <span id="genAddrQR"></span><br><span id="qraddr" style="font-family:monospace"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<!-- Templates -->
+
+<script id="accounts-template" type="text/x-handlebars-template">
+    {{#each accs}}
+    <div class="panel panel-default account">
+        <div class="panel-heading" role="tab">
+            <h4 class="panel-title">
+                <input type="checkbox" {{#if active}}checked="checked"{{/if}} class="cbAccount" data-path="{{path}}">
+                <a class="toggler" role="button" data-toggle="collapse" data-parent="#accounts" href="#{{@index}}">
+                    &nbsp; <strong>{{name}}</strong> - {{path}}, balance: {{formatSatoshi balance}} <span class="pull-right">{{fmtState state}}</span>
+                </a>
+            </h4>
+        </div>
+        <div id="{{@index}}" class="panel-collapse collapse {{#if shown}}in{{/if}}" role="tabpanel" >
+            {{#each chains}}
+            {{> chain this}}
+            {{/each}}
+        </div>
+    </div>
+    {{/each}}
+</script>
+
+<script id="chain-template" type="text/x-handlebars-template">
+    <table class="table table-condensed">
+        <thead>
+        <tr>
+            <th colspan="4">{{label}}</th>
+        </tr>
+        <tr>
+            <th>BIP 32 Path</th>
+            <th>Address</th>
+            <th>Current Balance</th>
+            <th>Total received</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {{> addresses addresses}}
+        </tbody>
+    </table>
+</script>
+
+<script id="addresslist-template" type="text/x-handlebars-template">
+    {{#each this}}
+    <tr class="address {{#if totalRecv}}info{{/if}} {{#if err}}danger{{/if}} {{state}}">
+        <td>{{path}}</td>
+        <td>{{addrHiddenLink addr 0}}</td>
+        <td>{{formatSatoshi balance}}</td>
+        <td>{{formatSatoshi totalRecv}}</td>
+        <td>{{#if err}}{{err}}{{/if}}</td>
+    </tr>
+    {{/each}}
+</script>
+
+<script id="utxos-template" type="text/x-handlebars-template">
+    <div class="panel-body">
+        <h4>Total: {{formatSatoshi totalAmount}}</h4>
+    </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>BIP 32 Path</th>
+            <th>Address</th>
+            <th>Amount</th>
+            <th>Confirmations</th>
+            <th>Funding Transaction</th>
+        </tr>
+        </thead>
+        {{#each utxoArray}}
+        <tbody>
+            <tr class="utxo">
+                <td>{{addrPath}}</td>
+                <td>{{addrHiddenLink address 0}}</td>
+                <td>{{formatSatoshi satoshis}}</td>
+                <td>{{confirmations}}</td>
+                <td>{{txLink txid 0}}</td>
+            </tr>
+        </tbody>
+        {{/each}}
+    </table>
+</script>
+
+</body>
+</html>
