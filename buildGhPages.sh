@@ -4,13 +4,15 @@ git diff-index --quiet HEAD -- || { echo "Commit all changes" && exit 1; }
 
 commitId=`git rev-parse --verify master`
 
-git checkout gh-pages
-
 rm -rf public/*
 brunch build
 
-git add --force public/*
+git worktree add pages gh-pages
 
+cp -r public/* pages
+cd pages
+git add *
 git commit --m "Pages build for $commitId"
 
-git checkout master
+cd ..
+rm -rf pages && git worktree prune
