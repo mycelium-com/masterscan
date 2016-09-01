@@ -14,7 +14,7 @@ It has a bit more relaxed gap settings than the original definition (5 for chang
 It uses [insight.is](https://insight.is/) to fetch address balances and the UTXO set.
 
 
-## Local development or hwo to run it locally
+## Local development or how to run it locally
 * Install (if you don't have them):
     * [Node.js](http://nodejs.org): `brew install node` on OS X
     * Bower and [Brunch](http://brunch.io): `npm install -g bower brunch`
