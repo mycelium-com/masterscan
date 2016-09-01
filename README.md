@@ -28,6 +28,17 @@ It uses [insight.is](https://insight.is/) to fetch address balances and the UTXO
     * [Brunch site](http://brunch.io), [Getting started guide](https://github.com/brunch/brunch-guide#readme)
 
 
+## How to use it
+
+If you use it with a masterseed with funds on it, you need to ensure the computer
+you use is safe (no keylogger, trojan, ...). It needs to be able to fetch data from an external
+server to scan for funds, so you cant run it offline.
+
+Either build it yourself and run it locally to prevent any chance of tampering or run the
+live version here [https://mycelium-com.github.io/masterscan/](https://mycelium-com.github.io/masterscan/)
+
+It is advised to not reuse a masterseed afterwards, if you entered it on a internet connected device.
+
 ## License
 
 This tool is [MIT-licensed](LICENSE.txt).
