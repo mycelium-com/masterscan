@@ -17,6 +17,7 @@ It uses [insight.is](https://insight.is/) to fetch address balances and the UTXO
 ## Local development or how to run it locally
 * Install (if you don't have them):
     * [Node.js](http://nodejs.org): `brew install node` on OS X
+    * On OsX you also need `brew install cairo`
     * Bower and [Brunch](http://brunch.io): `npm install -g bower brunch`
     * Brunch plugins and app dependencies: `brunch build`
 * Run:

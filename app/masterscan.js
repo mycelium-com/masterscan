@@ -474,6 +474,10 @@ class Chain{
         return this.root.derive(`m/${idx}`);
     }
 
+    derivePath(idx){
+        return this.path + '/' + idx;
+    }
+
     extend(){
         var addressCnt = 0;
         var idx = this.length;
@@ -482,7 +486,7 @@ class Chain{
             var node = this.deriveNode(idx);
             var pubNode = node.hdPublicKey || node;
             var addr = pubNode.publicKey.toAddress(this.context.network).toString();
-            this.addresses.push({addr: addr, path: this.path + '/' + idx, idx:idx, utxo:null, balance:null, totalRecv:null, state: 'unk'});
+            this.addresses.push({addr: addr, path: this.derivePath(idx), idx:idx, utxo:null, balance:null, totalRecv:null, state: 'unk'});
             this.keyBag.push(node.privateKey);
             addressCnt++;
             idx++;
@@ -531,6 +535,10 @@ class Chain{
 class CoreChain extends Chain {
     deriveNode(idx){
         return this.root.derive(`m/${idx}'`);
+    }
+
+    derivePath(idx){
+        return this.path + '/' + idx + "'";
     }
 }
 
