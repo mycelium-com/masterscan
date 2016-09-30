@@ -9,16 +9,17 @@ const INSIGHT_ENDPOINT = 'api';
 class Insight {
     constructor(host){
         this.host = host;
+        this.inFlight = 0;
     }
 
     isAddressUsed(address) {
         const endpoint = `/addr/${address}?noTxList=1`;
-        return this.unwrapJson(fetch(this.sanitizeURL(endpoint)));
+        return this.unwrapJson(this.queuedFetch(this.sanitizeURL(endpoint)));
     }
 
     getUTXOs(addresses) {
         const endpoint = '/addrs/utxo';
-        return this.unwrapJson(fetch(this.sanitizeURL(endpoint), {
+        return this.unwrapJson(this.queuedFetch(this.sanitizeURL(endpoint), {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -33,7 +34,7 @@ class Insight {
 
     sendTransaction(tx) {
         const endpoint = `/tx/send`;
-        return this.unwrapJson(fetch(this.sanitizeURL(endpoint), {
+        return this.unwrapJson(this.queuedFetch(this.sanitizeURL(endpoint), {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -43,7 +44,11 @@ class Insight {
                 rawtx: tx.serialize(),
             }),
         }));
+    }
 
+    getFeeEstimate(nblocks) {
+        const endpoint = `/utils/estimatefee?nbBlocks=${nblocks}`;
+        return this.unwrapJson(this.queuedFetch(this.sanitizeURL(endpoint)));
     }
 
     unwrapJson(response){
@@ -59,10 +64,35 @@ class Insight {
         });
     }
 
-    getFeeEstimate(nblocks) {
-        const endpoint = `/utils/estimatefee?nbBlocks=${nblocks}`;
-        return this.unwrapJson(fetch(this.sanitizeURL(endpoint)));
+    // some browser dont limit the amount of parallel requests (firefox) and the remote service returns
+    // overload errors. This function only allows to have a certain amount of pending ajax request running.
+    queuedFetch(url, config){
+        var that = this;
+        var p = new Promise((okay, fail) => {
+            function doIt(){
+                that.inFlight++;
+                fetch(url, config)
+                    .then((d)=> {
+                        that.inFlight--;
+                        okay(d);
+                    }).catch((e)=> {
+                        that.inFlight--;
+                        fail(e);
+                    });
+            }
+
+            function checkIt() {
+                if (that.inFlight > 6) {
+                    window.setTimeout(checkIt, 100);
+                } else {
+                    doIt();
+                }
+            }
+            checkIt();
+        });
+        return p;
     }
+
 
     sanitizeURL(url) {
         url = `${this.host}/${INSIGHT_ENDPOINT}` + url;
