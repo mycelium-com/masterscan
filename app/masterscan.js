@@ -15,14 +15,17 @@ const Mnemonic = require('bitcore-mnemonic');
 
 class Masterscan {
 
-    constructor(masterSeed, network = Networks.defaultNetwork, insight) {
+    constructor(masterSeed, passphrase, network = Networks.defaultNetwork, insight) {
         this.coinid = network === Networks.livenet ? 0 : 1;
         this.context = {network:network, insight: insight};
         try {
             this.masterseed = new Mnemonic(masterSeed);  // throws bitcore.ErrorMnemonicUnknownWordlist or bitcore.ErrorMnemonicInvalidMnemonic if not valid
-            this.rootnode =  this.masterseed.toHDPrivateKey("", network);
+            this.rootnode =  this.masterseed.toHDPrivateKey(passphrase, network);
         } catch (e){
             if (e.name == "bitcore.ErrorMnemonicUnknownWordlist" || e.name =="bitcore.ErrorMnemonicInvalidMnemonic") {
+                if (passphrase != ''){
+                    throw {message: 'Passphrase is only supported for wordlists', name: 'errMasterseed'};
+                }
                 try {
                     // the wordlist is not valid, check if its a HDKey
                     if (HDPublicKey.isValidSerialized(masterSeed, network)) {

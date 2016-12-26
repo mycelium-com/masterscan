@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const ui = {
         body: $('body'),
         txRootNode: $('#txRootNode'),
+        txPassphrase: $('#txPassphrase'),
         txReceiverAddress: $('#txReceiverAddress'),
         txTransaction: $('#txTransaction'),
         txFeePerByte: $('#txFeePerByte'),
@@ -180,12 +181,13 @@ document.addEventListener('DOMContentLoaded', function () {
         ui.lblRootKeyInfo.text('');
 
         const masterseed = ui.txRootNode.val();
+        const passphrase = ui.txPassphrase.val().trim();
         if (_.isEmpty(masterseed)) {
             ui.lblRootKeyInfoError.text('Error: Enter the masterseed or the xPriv/xPub of the root node').removeClass('hidden');
             ui.divRootNode.addClass('has-error');
         } else {
             try {
-                scanner = new Masterscan(masterseed, cfg.network, insight);
+                scanner = new Masterscan(masterseed, passphrase, cfg.network, insight);
                 ui.lblRootKeyInfo.text(scanner.rootnodeInfo);
                 scanner.scan(updateAccountList)
                     .then(accounts => {
