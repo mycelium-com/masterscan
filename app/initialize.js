@@ -27,7 +27,7 @@ const Masterscan = require('./masterscan');
 const cfg = {
     network: bitcore.Networks.testnet,
     //network : bitcore.Networks.livenet,
-    version: '0.2',
+    version: '0.3',
 };
 
 const Insight = require('./insightApi.js');
